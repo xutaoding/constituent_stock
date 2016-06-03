@@ -29,3 +29,26 @@ http://www.sse.com.cn/market/sseindex/indexlist/
 
 http://www.cnindex.com.cn/zstx/szxl/
 
+4: 关于字段的说明：
+---------------
+字段s: 指数的简称
+
+字段 p_code: 指数的代码
+
+字段s_code: 相应的指数下面对应的公司代码
+
+字段in_dt: 公司被纳入该指数的日期		‘20160603’
+
+字段out_dt:公司被剔除该指数的日期		‘20160603’
+
+字段sign: 公司是否被剔除该指数的标志		‘0’ or ‘1’
+
+字段 cat: 从哪里抓取的数据分类
+
+	上交所： ‘sse’
+	深交所：‘szse‘
+	CNINDEX: ’cni‘
+	
+字段ct: 该记录创建的时间 ‘20160602094201’
+
+
