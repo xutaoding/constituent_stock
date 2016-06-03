@@ -1,2 +1,2 @@
 from html_loader import HtmlLoader
-from utils import StorageMongo
+from util import StorageMongo
