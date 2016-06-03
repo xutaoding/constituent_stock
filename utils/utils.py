@@ -51,7 +51,7 @@ class StorageMongo(object):
     required_fields = ['s', 'p_code', 's_code', 'in_dt', 'out_dt', 'sign', 'cat', 'ct']
 
     def validation(self, data):
-        if isinstance(data, dict):
+        if not isinstance(data, dict):
             raise TypeError('Expected Dict object!')
 
         if set(data.keys()) - set(self.required_fields):

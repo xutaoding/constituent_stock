@@ -23,5 +23,14 @@ USER_AGENT = [
     'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:2.0b10pre) Gecko/20110118 Firefox/4.0b10pre',
 ]
 
+sse_config = {
+    'base_url': 'http://query.sse.com.cn/index/consList.do?jsonCallBack=&indexCode={c}&_={t}',
+    'ind_url': 'http://query.sse.com.cn/index/queryIndexDataList.do?jsonCallBack=&pageHelp.pageSize=100&_={t}',
+    'headers': {
+        'Host': 'query.sse.com.cn',
+        'Referer': 'http://www.sse.com.cn/market/sseindex/indexlist/',
+    }
+}
+
 
 
