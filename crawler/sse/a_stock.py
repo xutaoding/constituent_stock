@@ -60,9 +60,13 @@ class SSEAStock(HtmlLoader):
 
             for item in to_python:
                 item['uid'] = get_md5(''.join(item.values()))
-
+                item['ct'] = re.compile(r'\s+|[-:\.]').sub('', str((datetime.now())))[:14]
                 self.insert2mongo(item)
+
             self.logger.info('Crawl A stock ok: page <{}>'.format(start_page))
+
+            if not to_python:
+                break
             start_page += 1
 
 
