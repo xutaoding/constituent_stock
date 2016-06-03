@@ -57,7 +57,7 @@ class StorageMongo(object):
         if set(data.keys()) - set(self.required_fields):
             raise NameError('Expected keys: {}'.format(self.required_fields))
 
-        if isinstance(data['sign'], basestring) and data['sign'] in {1, 0}:
+        if isinstance(data['sign'], basestring) and data['sign'] not in {1, 0}:
             raise ValueError('Key `sign` expected string and value is 0 or 1 !')
 
     def filter(self, p_code, s_code, **kwargs):
