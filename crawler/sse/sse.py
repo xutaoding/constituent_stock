@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import re
 import time
 import json
@@ -38,20 +39,23 @@ class SSEIndex(HtmlLoader):
     def crawl(self):
         data_key = 'result'
         name_codes = self.get_name_code_by_index()
+        repl_dt = (lambda _dt: dt.replace('-', ''))
 
         for name, code in name_codes:
             url = self.base_url.format(c=code, t=str(time.time()).replace('.', ''))
             html = self.get_html(url, headers=self.headers)
 
-            for s_code, st, dt in self.unpickle(html, data_key):
+            for _index, item in enumerate(self.unpickle(html, data_key), 1):
+                s_code, st, dt = item
 
                 data = {
-                    's': name, 'p_code': code, 's_code': s_code, 'in_dt': dt, 'out_dt': None, 'sign': '0',
+                    's': name, 'p_code': code, 's_code': s_code, 'in_dt': repl_dt(dt), 'out_dt': None, 'sign': '0',
                     'cat': 'sse', 'ct': re.compile(r'\s+|[-:\.]').sub('', str((datetime.now())))[:14]
                 }
                 self.mongo.insert2mongo(data)
-            self.logger.info('Index <{name}>, Code <{code}> crawl spider!'.format(name=name, code=code))
-            break
+            else:
+                self.logger.info('Index <{name}>, Code <{code}>, Count <{count}> crawl spider!'.format(
+                    name=name, code=code, count=_index))
 
 
 if __name__ == '__main__':
