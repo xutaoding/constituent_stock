@@ -81,6 +81,7 @@ class SZSEIndex(object):
                             "cat": "szse",
                             "ct": time.strftime('%Y%m%d%H%M%S')
                         })
+        self.mongo.close()
 
 if __name__ == '__main__':
     SZSEIndex().name_index()

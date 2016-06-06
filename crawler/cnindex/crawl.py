@@ -76,6 +76,7 @@ class CNIndex(object):
                 if tr.select("td")[0].get("bgcolor") == "#FFFFFF":
                     url = "http://www.cnindex.com.cn/zstx/szxl/" + tr.select_one("td a").get("href")
                     self.parse_detail(url)
+        self.mongo.close()
 
 
 if __name__ == '__main__':
