@@ -9,7 +9,7 @@ from utils import StorageMongo
 from conf import logger
 
 
-class SZSEIndex(object):
+class IndexSample(object):
     def __init__(self):
         self.index_url = r'http://www.szse.cn/main/marketdata/hqcx/zsybg/'
         self.ajax_url = r'http://www.szse.cn/szseWeb/FrontController.szse'
@@ -42,12 +42,13 @@ class SZSEIndex(object):
             resp = requests.get(self.index_url)
         tree = lxml.html.fromstring(resp.content)
         counts = tree.xpath('//td[@align="left"][@width="128px"]/text()')
-        return int(self._count.findall(''.join(counts))[1])
+        if counts:
+            return int(self._count.findall(''.join(counts))[1])
 
     def name_index(self):
         counts = self.page_count()
 
-        for page in range(1, counts + 1):
+        for page in range(5, counts + 1):
             data = {'AJAX': 'AJAX-TRUE', 'TABKEY': 'tab1', 'ACTIONID': 7, 'tab1PAGENUM': page, 'CATALOGID': 1812}
             resp = requests.post(self.ajax_url, data=data, headers=self.header)
             raw_html = self.covert_charset(resp.content)
@@ -56,6 +57,8 @@ class SZSEIndex(object):
 
             for p in index_names:
                 ajax_counts = self.page_count({'ZSDM': p, 'TABKEY': 'tab1', 'ACTIONID': 7, 'CATALOGID': 1747})
+                if not ajax_counts:
+                    continue
                 for u_page in range(1, ajax_counts + 1):
                     data_1 = {'ZSDM': p, 'TABKEY': 'tab1', 'ACTIONID': 7, 'CATALOGID': 1747, 'tab1PAGENUM': u_page}
                     r = requests.post(self.ajax_url, data=data_1)
@@ -83,7 +86,7 @@ class SZSEIndex(object):
                         })
 
 if __name__ == '__main__':
-    SZSEIndex().name_index()
+    IndexSample().name_index()
 
 
 
