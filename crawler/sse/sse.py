@@ -56,6 +56,7 @@ class SSEIndex(HtmlLoader):
             else:
                 self.logger.info('Index <{name}>, Code <{code}>, Count <{count}> crawl spider!'.format(
                     name=name, code=code, count=_index))
+        self.mongo.close()
 
 
 if __name__ == '__main__':

@@ -84,6 +84,7 @@ class IndexSample(object):
                             "cat": "szse",
                             "ct": time.strftime('%Y%m%d%H%M%S')
                         })
+        self.mongo.close()
 
 if __name__ == '__main__':
     IndexSample().name_index()

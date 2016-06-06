@@ -63,6 +63,8 @@ class CsindexSpider(scrapy.Spider):
 
                 sm.insert2mongo([row.to_dict() for ix,row in data.iterrows()])
 
+        sm.close()
+
 
 if __name__ == "__main__":
     from scrapy.crawler import CrawlerProcess
