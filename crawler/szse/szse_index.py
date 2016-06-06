@@ -45,7 +45,7 @@ class SZSEIndex(object):
         if counts:
             return int(self._count.findall(''.join(counts))[1])
 
-    def name_index(self):
+    def upload(self):
         counts = self.page_count()
 
         for page in range(5, counts + 1):
@@ -87,7 +87,7 @@ class SZSEIndex(object):
         self.mongo.close()
 
 if __name__ == '__main__':
-    SZSEIndex().name_index()
+    SZSEIndex().upload()
 
 
 
