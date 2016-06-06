@@ -9,7 +9,7 @@ from utils import StorageMongo
 from conf import logger
 
 
-class IndexSample(object):
+class SZSEIndex(object):
     def __init__(self):
         self.index_url = r'http://www.szse.cn/main/marketdata/hqcx/zsybg/'
         self.ajax_url = r'http://www.szse.cn/szseWeb/FrontController.szse'
@@ -87,7 +87,7 @@ class IndexSample(object):
         self.mongo.close()
 
 if __name__ == '__main__':
-    IndexSample().name_index()
+    SZSEIndex().name_index()
 
 
 
