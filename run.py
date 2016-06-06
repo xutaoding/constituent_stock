@@ -2,6 +2,9 @@ from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
 
+from crawler import *
+from utils.util import StorageMongo
+
 jobstores = {
     'default': MemoryJobStore()
 }
@@ -19,19 +22,27 @@ app = BlockingScheduler(jobstores=jobstores, executors=executors, job_defaults=j
 
 
 def crawl_sse_index():
-    pass
+    SSEIndex().crawl()
 
 
 def crawl_szse_index():
-    pass
+    SZSEIndex().upload()
 
 
 def crawl_cnindex():
-    pass
+    CNIndex().main()
 
 
-def crawl_scindex():
-    pass
+def crawl_csindex():
+    from scrapy.crawler import CrawlerProcess
+    cp = CrawlerProcess()
+    cp.crawl(CsindexSpider())
+    cp.start()
+
+
+@app.scheduled_job(trigger='corn')
+def eliminate():
+    StorageMongo().eliminate()
 
 trigger = 'interval'
 trigger_kwargs = {}
@@ -39,6 +50,7 @@ trigger_kwargs = {}
 app.add_job(crawl_sse_index, trigger=trigger, trigger_args=trigger_kwargs)
 app.add_job(crawl_szse_index, trigger=trigger, trigger_args=trigger_kwargs)
 app.add_job(crawl_cnindex, trigger=trigger, trigger_args=trigger_kwargs)
-app.add_job(crawl_scindex, trigger=trigger, trigger_args=trigger_kwargs)
+app.add_job(crawl_csindex, trigger=trigger, trigger_args=trigger_kwargs)
 
 app.start()
+
