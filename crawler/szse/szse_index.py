@@ -48,7 +48,7 @@ class SZSEIndex(object):
     def upload(self):
         counts = self.page_count()
 
-        for page in range(5, counts + 1):
+        for page in range(1, counts + 1):
             data = {'AJAX': 'AJAX-TRUE', 'TABKEY': 'tab1', 'ACTIONID': 7, 'tab1PAGENUM': page, 'CATALOGID': 1812}
             resp = requests.post(self.ajax_url, data=data, headers=self.header)
             raw_html = self.covert_charset(resp.content)
