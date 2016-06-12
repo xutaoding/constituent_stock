@@ -5,7 +5,7 @@ import re
 import requests
 import chardet
 import time
-from utils import StorageMongo
+from utils import StorageMongo, HtmlLoader
 from conf import logger
 
 
@@ -50,8 +50,9 @@ class SZSEIndex(object):
 
         for page in range(1, counts + 1):
             data = {'AJAX': 'AJAX-TRUE', 'TABKEY': 'tab1', 'ACTIONID': 7, 'tab1PAGENUM': page, 'CATALOGID': 1812}
-            resp = requests.post(self.ajax_url, data=data, headers=self.header, timeout=30)
-            raw_html = self.covert_charset(resp.content)
+            # resp = requests.post(self.ajax_url, data=data, headers=self.header, timeout=30)
+            # raw_html = self.covert_charset(resp.content)
+            raw_html = self.covert_charset(HtmlLoader().get_raw_html(self.ajax_url, data=data))
             tree = lxml.html.fromstring(unicode(raw_html, 'utf-8'))
             index_names = tree.xpath('//td[@class="cls-data-td"][@style="mso-number-format:\@"]/a/u/text()')
 
@@ -61,8 +62,9 @@ class SZSEIndex(object):
                     continue
                 for u_page in range(1, ajax_counts + 1):
                     data_1 = {'ZSDM': p, 'TABKEY': 'tab1', 'ACTIONID': 7, 'CATALOGID': 1747, 'tab1PAGENUM': u_page}
-                    r = requests.post(self.ajax_url, data=data_1)
-                    html = self.covert_charset(r.content)
+                    # r = requests.post(self.ajax_url, data=data_1)
+                    # html = self.covert_charset(r.content)
+                    html = self.covert_charset(HtmlLoader().get_raw_html(self.ajax_url, data=data_1))
                     etree = lxml.html.fromstring(unicode(html, 'utf-8'))
                     _date = etree.xpath('//span[@class="cls-subtitle"]/text()')
                     in_dt = re.sub('-', '', str(self._date.findall(''.join(_date))[0]))
@@ -87,8 +89,10 @@ class SZSEIndex(object):
         self.mongo.close()
 
 if __name__ == '__main__':
+    import time
+    st = time.time()
     SZSEIndex().upload()
-
+    print time.time() - st
 
 
 

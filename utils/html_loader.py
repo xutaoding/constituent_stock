@@ -1,5 +1,6 @@
 import time
 import urllib2
+import urllib
 import requests
 from random import choice
 
@@ -23,7 +24,7 @@ class HtmlLoader(object):
 
     def get_raw_html(self, url, data=None, **kwargs):
         for i in range(1, 4):
-            req = urllib2.Request(url) if not data else urllib2.Request(url, data)
+            req = urllib2.Request(url) if not data else urllib2.Request(url, urllib.urlencode(data))
             req.add_header('User-Agent', choice(USER_AGENT))
 
             for head_key, head_value in kwargs.iteritems():
