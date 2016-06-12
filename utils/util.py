@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import hashlib
+from datetime import datetime
 from operator import itemgetter
-from datetime import datetime, timedelta
 from collections import defaultdict
 
 from pymongo import MongoClient
+from conf import logger
 from conf import HOST, PORT, DB, COLLECTION
 
 
@@ -20,38 +21,63 @@ def get_md5(value):
     return m.hexdigest()
 
 
-def get_data_from_mongo():
-    cached = {}
-    client = MongoClient(HOST, PORT)
-    collection = client[DB][COLLECTION]
-
-    fields = ['p_code', 's_code', 'sign', 'ct']
-    # Annotation: `sign` company be bring into related index with zero, else with 1
-    cursor = collection.find({}, {k: 1 for k in fields}).sort([('in_dt', -1)])
-
-    for docs in cursor:
-        sign = int(docs['sign'])
-        ps_code = docs['p_code'] + docs['s_code']
-        value_dict = {'ct': docs['ct'], '_id': docs['_id']}
-        cached[ps_code] = value_dict
-
-        if sign:
-            cached[ps_code + str(sign)] = value_dict
-    client.close()
-
-    return cached
-
-inner_cached = get_data_from_mongo()
-
-
 class StorageMongo(object):
-    cached = inner_cached
+    default_indexes = ['ct', '_id']
 
     def __init__(self):
         self.client = MongoClient(HOST, PORT)
         self.collection = self.client[DB][COLLECTION]
 
+        self.created_index()
+        self.need_index = set()
+        self.cached = self.get_data_from_mongo()
+
     required_fields = ['s', 'p_code', 's_code', 'in_dt', 'out_dt', 'sign', 'cat', 'ct', 'stat']
+
+    def get_data_from_mongo(self, unset=True):
+        cached = set()
+        required_docs = self.get_ordered_items()
+
+        if unset is False:
+            setattr(self, 'latest_indexes', required_docs)
+
+        for _k, _v in required_docs.iteritems():
+            sign = _v[0][-1]
+            key = _k + sign if sign == '1' else _k
+            cached.add(key)
+        return cached
+
+    def get_ordered_items(self):
+        required_docs = defaultdict(list)
+        required_fields = {'p_code': 1, 's_code': 1, 'ct': 1, 'sign': 1}
+
+        for r_docs in self.collection.find({}, required_fields).sort([('ct', -1)]):
+            key = r_docs['p_code'] + r_docs['s_code']
+
+            # 在未处理剔除之前的指数抓取都默认为是未剔除状态
+            required_docs[key].append((r_docs['ct'], r_docs['_id'], r_docs['sign']))
+
+        for ps_key, values in required_docs.iteritems():
+            values.sort(key=lambda item: itemgetter(item, 0))
+        return required_docs
+
+    def list_indexes(self):
+        indexes = []
+
+        for key, value in self.collection.index_information().iteritems():
+            try:
+                index = value['key'][0][0]
+                indexes.append(index)
+            except (KeyError, IndexError):
+                pass
+        return indexes
+
+    def created_index(self):
+        actual_indexes = self.list_indexes()
+
+        for index in self.default_indexes:
+            if index not in actual_indexes:
+                self.collection.create_index(index)
 
     def validation(self, data):
         if not isinstance(data, dict):
@@ -68,67 +94,47 @@ class StorageMongo(object):
 
     def filter(self, p_code, s_code, **kwargs):
         ft = p_code + s_code
-        cache = self.__class__.cached
+        cache = self.cached
+        self.need_index.add(ft)
 
         if ft not in cache:
-            cache[ft] = {'ct': kwargs['ct']}
-            return True, ft
+            return True
         else:
             in_ft = ft + '1'
             if in_ft in cache:
                 # 该指数曾被纳入， 又被剔除， 现需重新加入
-                cache[in_ft] = {'ct': kwargs['ct']}
-                return True, in_ft
-        return False, ft
+
+                return True
+        return False
 
     def insert2mongo(self, docs_or_list):
         bulk = docs_or_list if isinstance(docs_or_list, (tuple, list)) else [docs_or_list]
 
         for each_docs in bulk:
             self.validation(each_docs)
+            is_insert = self.filter(**each_docs)
             try:
-                is_insert, uid = self.filter(**each_docs)
-
                 if is_insert:
-                    self.cached[uid]['_id'] = self.collection.insert(each_docs)
-                else:
-                    query = {'_id': self.cached[uid]['_id']}
-                    docs = {'$set': {'ct': each_docs['ct']}}
-                    self.collection.update(query, docs)
-                    pass
+                    self.collection.insert(each_docs)
             except Exception:
                 pass
 
     def eliminate(self):
-        format_dt = '%Y%m%d'
-        td = datetime.now()
-        required_docs = defaultdict(list)
-        required_fields = {'p_code': 1, 's_code': 1, 'ct': 1, 'sign': 1}
+        need_indexes = self.need_index
+        mongo_indexes = self.get_data_from_mongo(unset=True)
 
-        for r_docs in self.collection.find({}, required_fields):
-            key = r_docs['p_code'] + r_docs['s_code']
+        diff_set = mongo_indexes - need_indexes
 
-            # 在未处理剔除之前的指数抓取都默认为是未剔除状态
-            if r_docs['sign'] == '0':
-                required_docs[key].append((r_docs['ct'], r_docs['_id']))
+        try:
+            latest_docs = self.latest_indexes
 
-        for ps_key, values in required_docs.iteritems():
-            values.sort(key=lambda item: itemgetter(item, 0))
-
-        for key, values_list in required_docs:
-            ct = values_list[0][0]
-            cond = {'_id': values_list[0][1]}
-            setdata = {'$set':
-                {
-                    'sign': '1',
-                    'ct': datetime.now().strftime('%Y%m%d%H%M%S'),
-                    'out_dt': (td - timedelta(days=1)).strftime(format_dt),
-                }
-            }
-
-            if ct[:8] != td.strftime(format_dt):
-                self.collection.update(cond, setdata)
-        self.close()
+            for ps_key in diff_set:
+                _id = latest_docs[ps_key][0][1]
+                query = {'_id': _id}
+                setdata = {'$set': {'sign': '1', 'ct': datetime.now().strftime('%Y%m%d%H%M%S')}}
+                self.collection.update(query, setdata)
+        except (AttributeError, KeyError, IndexError) as e:
+            logger.info('`Eliminate` crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
     def close(self):
         self.client.close()
