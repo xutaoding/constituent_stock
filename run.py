@@ -8,6 +8,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
 
 from crawler import *
+from conf import logger
 from utils.util import StorageMongo
 
 
@@ -38,19 +39,36 @@ app = BlockingScheduler(jobstores=jobstores, executors=executors, job_defaults=j
 
 @app.scheduled_job(trigger='cron', hour='17')
 def crawl_index_jobs():
-    SSEIndex().crawl()  # 上海交易所指数
-    SZSEIndex().upload()  # 深圳交易所指数
-    CNIndex().main()  # CNINDEX 网站指数
+    try:
+        SSEIndex().crawl()  # 上海交易所指数
+    except Exception as e:
+        logger.info('SSE crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
-    # 中证指数网站
-    cp = CrawlerProcess()
-    cp.crawl(CsindexSpider())
-    cp.start()
+    try:
+        SZSEIndex().upload()  # 深圳交易所指数
+    except Exception as e:
+        logger.info('SZSE crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
+
+    try:
+        CNIndex().main()  # CNINDEX 网站指数
+    except Exception as e:
+        logger.info('CNindex crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
+
+    try:
+        # 中证指数网站
+        cp = CrawlerProcess()
+        cp.crawl(CsindexSpider())
+        cp.start()
+    except Exception as e:
+        logger.info('SSIndex crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
 
 @app.scheduled_job(trigger='corn', hour='23')
 def eliminate():
-    StorageMongo().eliminate()
+    try:
+        StorageMongo().eliminate()
+    except Exception as e:
+        logger.info('Eliminate index error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
 app.start()
 
