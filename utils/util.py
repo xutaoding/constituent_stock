@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 import hashlib
 from operator import itemgetter
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import defaultdict
 
 from pymongo import MongoClient
@@ -26,7 +26,8 @@ def get_data_from_mongo():
     collection = client[DB][COLLECTION]
 
     fields = ['p_code', 's_code', 'sign', 'ct']
-    cursor = collection.find({}, {k: 1 for k in fields})
+    # Annotation: `sign` company be bring into related index with zero, else with 1
+    cursor = collection.find({}, {k: 1 for k in fields}).sort([('in_dt', -1)])
 
     for docs in cursor:
         sign = int(docs['sign'])
@@ -50,11 +51,14 @@ class StorageMongo(object):
         self.client = MongoClient(HOST, PORT)
         self.collection = self.client[DB][COLLECTION]
 
-    required_fields = ['s', 'p_code', 's_code', 'in_dt', 'out_dt', 'sign', 'cat', 'ct']
+    required_fields = ['s', 'p_code', 's_code', 'in_dt', 'out_dt', 'sign', 'cat', 'ct', 'stat']
 
     def validation(self, data):
         if not isinstance(data, dict):
             raise TypeError('Expected Dict object!')
+
+        if 'stat' not in data:
+            data.update(stat=2)
 
         if set(data.keys()) - set(self.required_fields):
             raise NameError('Expected keys: {}'.format(self.required_fields))
@@ -91,17 +95,20 @@ class StorageMongo(object):
                     query = {'_id': self.cached[uid]['_id']}
                     docs = {'$set': {'ct': each_docs['ct']}}
                     self.collection.update(query, docs)
+                    pass
             except Exception:
                 pass
 
     def eliminate(self):
+        format_dt = '%Y%m%d'
+        td = datetime.now()
         required_docs = defaultdict(list)
-        td = datetime.now().strftime('%Y%m%d')
         required_fields = {'p_code': 1, 's_code': 1, 'ct': 1, 'sign': 1}
 
         for r_docs in self.collection.find({}, required_fields):
             key = r_docs['p_code'] + r_docs['s_code']
 
+            # 在未处理剔除之前的指数抓取都默认为是未剔除状态
             if r_docs['sign'] == '0':
                 required_docs[key].append((r_docs['ct'], r_docs['_id']))
 
@@ -109,11 +116,17 @@ class StorageMongo(object):
             values.sort(key=lambda item: itemgetter(item, 0))
 
         for key, values_list in required_docs:
-            ct = values_list[0]
-            cond = {'_id': values_list[1]}
-            setdata = {'$set': {'sign': '1', 'ct': datetime.now().strftime('%Y%m%d%H%M%S')}}
+            ct = values_list[0][0]
+            cond = {'_id': values_list[0][1]}
+            setdata = {'$set':
+                {
+                    'sign': '1',
+                    'ct': datetime.now().strftime('%Y%m%d%H%M%S'),
+                    'out_dt': (td - timedelta(days=1)).strftime(format_dt),
+                }
+            }
 
-            if ct[:8] < td:
+            if ct[:8] != td.strftime(format_dt):
                 self.collection.update(cond, setdata)
         self.close()
 

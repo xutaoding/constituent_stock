@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import os
 from os.path import dirname, abspath
 
+from scrapy.crawler import CrawlerProcess
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
@@ -18,31 +20,13 @@ def create_sqlite():
 create_sqlite()
 
 
-def crawl_sse_index():
-    SSEIndex().crawl()
-
-
-def crawl_szse_index():
-    SZSEIndex().upload()
-
-
-def crawl_cnindex():
-    CNIndex().main()
-
-
-def crawl_csindex():
-    from scrapy.crawler import CrawlerProcess
-    cp = CrawlerProcess()
-    cp.crawl(CsindexSpider())
-    cp.start()
-
 jobstores = {
     'default': SQLAlchemyJobStore(url='sqlite:///jobs.db')
 }
 
 # using ThreadPoolExecutor as default other than ProcessPoolExecutor(not work) to executors
 executors = {
-    'default': ThreadPoolExecutor(20),
+    'default': ThreadPoolExecutor(4),
 }
 
 job_defaults = {
@@ -52,17 +36,21 @@ job_defaults = {
 app = BlockingScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults)
 
 
+@app.scheduled_job(trigger='cron', hour='17')
+def crawl_index_jobs():
+    SSEIndex().crawl()  # 上海交易所指数
+    SZSEIndex().upload()  # 深圳交易所指数
+    CNIndex().main()  # CNINDEX 网站指数
+
+    # 中证指数网站
+    cp = CrawlerProcess()
+    cp.crawl(CsindexSpider())
+    cp.start()
+
+
 @app.scheduled_job(trigger='corn', hour='23')
 def eliminate():
     StorageMongo().eliminate()
-
-trigger = 'cron'
-trigger_kwargs = {'hour': '9'}
-
-app.add_job(crawl_sse_index, trigger=trigger, **trigger_kwargs)
-app.add_job(crawl_szse_index, trigger=trigger, **trigger_kwargs)
-app.add_job(crawl_cnindex, trigger=trigger, **trigger_kwargs)
-app.add_job(crawl_csindex, trigger=trigger, **trigger_kwargs)
 
 app.start()
 
