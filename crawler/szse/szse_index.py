@@ -72,10 +72,9 @@ class SZSEIndex(object):
                         in_dt = time.strftime('%Y%m%d')
                     name = _date[0].split('  ')[1]
                     codes = etree.xpath('//td[@style="mso-number-format:\@"]/text()')
-                    logger.info('page:%d,name:%s' % (u_page, name))
 
                     for code in codes:
-                        logger.info("Index name:%s,p_code:%s,s_code:%s,date:%s \n" % (name, p, code, in_dt))
+                        # logger.info("Index name:%s,p_code:%s,s_code:%s,date:%s \n" % (name, p, code, in_dt))
                         self.mongo.insert2mongo({
                             "s": name,
                             "p_code": p,
@@ -86,6 +85,7 @@ class SZSEIndex(object):
                             "cat": "szse",
                             "ct": time.strftime('%Y%m%d%H%M%S')
                         })
+                    logger.info('page:%d,name:%s' % (u_page, name))
         self.mongo.close()
 
 if __name__ == '__main__':
