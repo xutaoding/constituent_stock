@@ -35,7 +35,7 @@ class SZSEIndex(object):
 
     def page_count(self, data=None):
         if data:
-            resp = requests.post(self.ajax_url, data=data, headers=self.header)
+            resp = requests.post(self.ajax_url, data=data, headers=self.header, timeout=30)
             if resp.status_code != 200:
                 return
         else:
@@ -50,7 +50,7 @@ class SZSEIndex(object):
 
         for page in range(1, counts + 1):
             data = {'AJAX': 'AJAX-TRUE', 'TABKEY': 'tab1', 'ACTIONID': 7, 'tab1PAGENUM': page, 'CATALOGID': 1812}
-            resp = requests.post(self.ajax_url, data=data, headers=self.header)
+            resp = requests.post(self.ajax_url, data=data, headers=self.header, timeout=30)
             raw_html = self.covert_charset(resp.content)
             tree = lxml.html.fromstring(unicode(raw_html, 'utf-8'))
             index_names = tree.xpath('//td[@class="cls-data-td"][@style="mso-number-format:\@"]/a/u/text()')

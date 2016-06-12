@@ -21,10 +21,13 @@ class HtmlLoader(object):
                 self.logger.info("Get html error: type <{}>, msg <{}>".format(e.__class__, e))
         return ''
 
-    def get_raw_html(self, url, data=None):
+    def get_raw_html(self, url, data=None, **kwargs):
         for i in range(1, 4):
             req = urllib2.Request(url) if not data else urllib2.Request(url, data)
             req.add_header('User-Agent', choice(USER_AGENT))
+
+            for head_key, head_value in kwargs.iteritems():
+                req.add_header(head_key, head_value)
 
             try:
                 response = urllib2.urlopen(req, timeout=30)
