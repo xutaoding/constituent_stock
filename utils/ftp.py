@@ -47,12 +47,18 @@ class Ftp(ftplib.FTP):
             try:
                 self.retrbinary("RETR %s" % file, cache.write)
             except:
-                return pandas.DataFrame()
+                return "",pandas.DataFrame()
 
         if not zipfile.is_zipfile(file_path):
-            return pandas.read_excel(file_path)
+            ef = pandas.ExcelFile(file_path)
+            return ef.sheet_names[0], pandas.read_excel(ef)
 
         with zipfile.ZipFile(file_path, "r") as zip:
-            result = pandas.concat([pandas.read_excel(zip.open(name)) for name in zip.namelist()])
+            xlss = []
+            sheet_name = ""
+            for name in zip.namelist():
+                ef = pandas.ExcelFile(zip.open(name))
+                xlss.append(pandas.read_excel(ef))
+                sheet_name = ef.sheet_names[0]
 
-            return result.drop_duplicates()
+            return sheet_name, pandas.concat(xlss).drop_duplicates()
