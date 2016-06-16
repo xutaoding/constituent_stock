@@ -73,11 +73,14 @@ class StorageMongo(object):
         return indexes
 
     def created_index(self):
-        actual_indexes = self.list_indexes()
+        try:
+            actual_indexes = self.list_indexes()
 
-        for index in self.default_indexes:
-            if index not in actual_indexes:
-                self.collection.create_index(index)
+            for index in self.default_indexes:
+                if index not in actual_indexes:
+                    self.collection.create_index(index)
+        except:
+            pass
 
     def validation(self, data):
         if not isinstance(data, dict):
