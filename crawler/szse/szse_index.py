@@ -85,7 +85,7 @@ class SZSEIndex(object):
                             "cat": "szse",
                             "ct": time.strftime('%Y%m%d%H%M%S')
                         })
-                    logger.info('page:%d,name:%s' % (u_page, name))
+                    logger.info('Pages:[%d], %s page [%s]' % (page, u_page, name))
                     time.sleep(0.4)
                 time.sleep(5)
         self.mongo.close()
