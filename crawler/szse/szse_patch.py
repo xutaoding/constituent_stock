@@ -61,9 +61,11 @@ class SZSEPatch(object):
                     if not in_dt:
                         in_dt = time.strftime('%Y%m%d')
                 name = _date[0].split('  ')[1]
-                
+
             if counts:
                 return int(self._count.findall(''.join(counts))[1]), in_dt, name
+            else:
+                return None, '', ''
         else:
             resp = requests.get(self.index_url)
             tree = lxml.html.fromstring(resp.content)
