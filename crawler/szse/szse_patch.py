@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
 import lxml.html
 import re
 import requests
@@ -7,9 +7,9 @@ import chardet
 import time
 from utils import StorageMongo, HtmlLoader
 from conf import logger
-import xlrd
 
-class SZSEIndex(object):
+
+class SZSEPatch(object):
     def __init__(self):
         self.index_url = r'http://www.szse.cn/main/marketdata/hqcx/zsybg/'
         self.ajax_url = r'http://www.szse.cn/szseWeb/FrontController.szse'
@@ -20,7 +20,8 @@ class SZSEIndex(object):
         self.excel_url = r'http://www.szse.cn/szseWeb/ShowReport.szse?SHOWTYPE=EXCEL' \
                          r'&CATALOGID=1747&ZSDM=%s' \
                          r'&tab1PAGENUM=1&ENCODE=1&TABKEY=tab1'
-        self._scode = re.compile(r"<td  class='cls-data-td' style='mso-number-format:\\@' align='center' >(\d+)</td>", re.S)
+        self._scode = re.compile(r"<td  class='cls-data-td' style='mso-number-format:\\@' align='center' >(\d+)</td>",
+                                 re.S)
         self._count = re.compile(r'\d+', re.S)
         self._date = re.compile(r'\d+-.*', re.S)
         self.mongo = StorageMongo()
@@ -35,7 +36,7 @@ class SZSEIndex(object):
         return raw_html
 
     def covert_charset(self, string):
-        charset = chardet.detect(string)['encoding']  # return value is a dictionary(have a key is 'encoding')
+        charset = chardet.detect(string)['encoding']
         if charset is None:
             return string
         if charset != 'utf-8' and charset == 'GB2312':
@@ -48,7 +49,6 @@ class SZSEIndex(object):
 
     def page_count(self, data=None):
         if data:
-            # resp = requests.post(self.ajax_url, data=data, headers=self.header, timeout=30)
             html = self.covert_charset(HtmlLoader().get_raw_html(self.ajax_url, data=data, headers=self.header))
             tree = lxml.html.fromstring(unicode(html, 'utf-8'))
             counts = tree.xpath('//td[@align="left"][@width="128px"]/text()')
@@ -96,17 +96,12 @@ class SZSEIndex(object):
                             "ct": time.strftime('%Y%m%d%H%M%S')
                         })
                     logger.info('pcode:%d,name:%s' % (p, name))
+                time.sleep(2)
             self.mongo.close()
 
 if __name__ == '__main__':
-    import os
-    SZSEIndex().get_excel('399001')
-"""
-    import time
-    st = time.time()
-    SZSEIndex().upload()
-    print time.time() - st
-"""
+    SZSEPatch.upload()
+
 
 
 
