@@ -101,12 +101,12 @@ class StorageMongo(object):
         self.need_index.add(ft)
 
         if ft not in cache:
+            cache.add(ft)
             return True
         else:
             in_ft = ft + '1'
             if in_ft in cache:
                 # 该指数曾被纳入， 又被剔除， 现需重新加入
-
                 return True
         return False
 

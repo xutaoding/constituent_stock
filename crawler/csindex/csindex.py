@@ -59,7 +59,7 @@ class CsindexSpider(scrapy.Spider):
                 data["p_code"] = str(file[:-8])
                 data["in_dt"] = in_dt.strftime("%Y%m%d")
                 data["out_dt"] = None
-                data["sign"] = 0
+                data["sign"] = '0'
                 data["cat"] = self.name
                 data["ct"] = today.strftime("%Y%m%d%H%M%S")
 
