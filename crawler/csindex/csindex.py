@@ -33,7 +33,6 @@ class CsindexSpider(scrapy.Spider):
         comp = re.compile("ftp://(.+)/(.+[.].+)")
         sm=StorageMongo()
 
-
         for table in response.css("table"):
             for tr in table.css("tr")[1:]:
                 name = tr.css("td:nth-child(1) a::text").extract_first()
@@ -42,8 +41,6 @@ class CsindexSpider(scrapy.Spider):
                     continue
 
                 today=datetime.now()
-
-
                 host, file = comp.findall(uri)[0]
                 ftp = Ftp(host)
                 data = pandas.DataFrame()
