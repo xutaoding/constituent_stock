@@ -8,6 +8,11 @@ A_PORT = 27017
 A_DB = 'py_crawl'
 A_COLLECTION = 'a_stock'
 
+CAN_HOST = '192.168.100.20'
+CAN_PORT = 27017
+CAN_DB = 'ada'
+CAN_COLLECTION = 'dict_calendar'
+
 USER_AGENT = [
     'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36',
     'Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.67 Safari/537.36',
