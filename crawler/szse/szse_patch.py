@@ -53,10 +53,15 @@ class SZSEPatch(object):
             tree = lxml.html.fromstring(unicode(html, 'utf-8'))
             counts = tree.xpath('//td[@align="left"][@width="128px"]/text()')
             _date = tree.xpath('//span[@class="cls-subtitle"]/text()')
-            in_dt = re.sub('-', '', str(self._date.findall(''.join(_date))[0]))
-            if in_dt == '':
-                in_dt = time.strftime('%Y%m%d')
-            name = _date[0].split('  ')[1]
+
+            if len(_date) != 0:
+                date = self._date.findall(''.join(_date))
+                if len(date) != 0:
+                    in_dt = re.sub('-', '', str(date[0]))
+                    if not in_dt:
+                        in_dt = time.strftime('%Y%m%d')
+                name = _date[0].split('  ')[1]
+                
             if counts:
                 return int(self._count.findall(''.join(counts))[1]), in_dt, name
         else:
@@ -94,7 +99,7 @@ class SZSEPatch(object):
                             "ct": time.strftime('%Y%m%d%H%M%S')
                         })
                     logger.info('pcode:%s,name:%s' % (p, name))
-                time.sleep(2)
+                time.sleep(0.5)
             self.mongo.close()
 
 if __name__ == '__main__':
