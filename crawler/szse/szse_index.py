@@ -86,6 +86,8 @@ class SZSEIndex(object):
                             "ct": time.strftime('%Y%m%d%H%M%S')
                         })
                     logger.info('page:%d,name:%s' % (u_page, name))
+                    time.sleep(0.4)
+                time.sleep(5)
         self.mongo.close()
 
 if __name__ == '__main__':
