@@ -28,7 +28,7 @@ class SZSEPatch(object):
 
     def parse_html(self, html):
 
-        return self._scode.findall(html.decode('gbk'))
+        return self._scode.findall(html)
 
     def get_html(self, p_code):
         url = self.excel_url % p_code
@@ -71,8 +71,6 @@ class SZSEPatch(object):
 
         for page in range(1, counts + 1):
             data = {'AJAX': 'AJAX-TRUE', 'TABKEY': 'tab1', 'ACTIONID': 7, 'tab1PAGENUM': page, 'CATALOGID': 1812}
-            # resp = requests.post(self.ajax_url, data=data, headers=self.header, timeout=30)
-            # raw_html = self.covert_charset(resp.content)
             raw_html = self.covert_charset(HtmlLoader().get_raw_html(self.ajax_url, data=data))
             tree = lxml.html.fromstring(unicode(raw_html, 'utf-8'))
             index_names = tree.xpath('//td[@class="cls-data-td"][@style="mso-number-format:\@"]/a/u/text()')
@@ -95,7 +93,7 @@ class SZSEPatch(object):
                             "cat": "szse",
                             "ct": time.strftime('%Y%m%d%H%M%S')
                         })
-                    logger.info('pcode:%d,name:%s' % (p, name))
+                    logger.info('pcode:%s,name:%s' % (p, name))
                 time.sleep(2)
             self.mongo.close()
 
