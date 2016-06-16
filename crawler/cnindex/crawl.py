@@ -49,10 +49,7 @@ class CNIndex(object):
                 s_code_line = i
             if u"更新日期：" in sh.row_values(0)[i]:
                 dt_tmp = str(sh.row_values(0)[i]).replace("更新日期：", "").strip()
-                in_dt = datetime.datetime.strftime(
-                    datetime.datetime.strptime("%04d-%02d-%02d" % (
-                        int(dt_tmp.split("-")[0]), int(dt_tmp.split("-")[1]), int(dt_tmp.split("-")[2])), "%Y-%m-%d"),
-                    "%Y%m%d")
+                in_dt = datetime.datetime.strftime(datetime.datetime.strptime(dt_tmp, "%Y-%m-%d"), "%Y%m%d")
         if s_line is not None and p_code_line is not None and s_code_line is not None and in_dt is not None:
             for i in range(1, sh.nrows):
                 p_code = None
@@ -68,7 +65,7 @@ class CNIndex(object):
                     "in_dt": in_dt,
                     "out_dt": None,
                     "sign": "0",
-                    "cat": "cni",
+                    "cat": "cnindex",
                     "ct": time.strftime('%Y%m%d%H%M%S')
                 })
         os.remove(path)
