@@ -29,6 +29,7 @@ class CsindexSpider(scrapy.Spider):
     字段 cat: 从哪里抓取的数据分类 该字段值必须有
     字段ct: 该记录创建的时间 ‘20160602094201’
     """
+
     def parse(self, response):
         comp = re.compile("ftp://(.+)/(.+[.].+)")
         sm=StorageMongo()
@@ -45,20 +46,24 @@ class CsindexSpider(scrapy.Spider):
                 ftp = Ftp(host)
                 data = pandas.DataFrame()
 
-                downloaded = ftp.download(file,"datas")
+                sheet_name, downloaded = ftp.download(file, "datas")
                 if downloaded.empty or not downloaded.__contains__(u"成分券代码\nConstituent Code"):
                     continue
+                try:
+                    in_dt=datetime.strptime(sheet_name,"%Y%m%d")
+                except ValueError:
+                    in_dt=today
 
                 data["s_code"] = downloaded[u"成分券代码\nConstituent Code"].astype(str)
                 data["s"] = name
-                data["p_code"]=str(file[:-8])
-                data["in_dt"]=today.strftime("%Y%m%d")
-                data["out_dt"]=None
-                data["sign"]=0
-                data["cat"]=self.name
-                data["ct"]=today.strftime("%Y%m%d%H%M%S")
+                data["p_code"] = str(file[:-8])
+                data["in_dt"] = in_dt.strftime("%Y%m%d")
+                data["out_dt"] = None
+                data["sign"] = 0
+                data["cat"] = self.name
+                data["ct"] = today.strftime("%Y%m%d%H%M%S")
 
-                sm.insert2mongo([row.to_dict() for ix,row in data.iterrows()])
+                sm.insert2mongo([row.to_dict() for ix, row in data.iterrows()])
 
         sm.close()
 
