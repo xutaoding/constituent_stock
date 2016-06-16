@@ -100,7 +100,7 @@ class SZSEPatch(object):
             self.mongo.close()
 
 if __name__ == '__main__':
-    SZSEPatch.upload()
+    SZSEPatch().upload()
 
 
 
