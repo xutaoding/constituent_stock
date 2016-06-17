@@ -47,7 +47,8 @@ sse_config = {
              'pageHelp.pageNo={p}&pageHelp.endPage=21&_={t}',
     'a_headers': {
         'Host': 'query.sse.com.cn',
-        'Referer': 'http://www.sse.com.cn/assortment/stock/list/share/'
+        'Referer': 'http://www.sse.com.cn/assortment/stock/list/share/',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36'
     }
 
 }

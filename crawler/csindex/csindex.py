@@ -32,7 +32,7 @@ class CsindexSpider(scrapy.Spider):
 
     def parse(self, response):
         comp = re.compile("ftp://(.+)/(.+[.].+)")
-        sm = StorageMongo()
+        sm=StorageMongo()
 
         for table in response.css("table"):
             for tr in table.css("tr")[1:]:
@@ -41,11 +41,11 @@ class CsindexSpider(scrapy.Spider):
                 if not uri or not comp.findall(uri):
                     continue
 
-                today = datetime.now()
-
+                today=datetime.now()
                 host, file = comp.findall(uri)[0]
                 ftp = Ftp(host)
                 data = pandas.DataFrame()
+
 
                 sheet_name, downloaded = ftp.download(file, "datas")
                 if downloaded.empty or not downloaded.__contains__(u"成分券代码\nConstituent Code"):
@@ -55,12 +55,18 @@ class CsindexSpider(scrapy.Spider):
                 except ValueError:
                     in_dt=today
 
-                data["s_code"] = downloaded[u"成分券代码\nConstituent Code"].astype(str)
+                def fmt_s_code(x):
+                    if isinstance(x,(float,int)):
+                        return "%06d"%x
+                    else:
+                        return x
+
+                data["s_code"] = downloaded[u"成分券代码\nConstituent Code"].apply(fmt_s_code)
                 data["s"] = name
                 data["p_code"] = str(file[:-8])
                 data["in_dt"] = in_dt.strftime("%Y%m%d")
                 data["out_dt"] = None
-                data["sign"] = 0
+                data["sign"] = '0'
                 data["cat"] = self.name
                 data["ct"] = today.strftime("%Y%m%d%H%M%S")
 
