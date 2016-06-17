@@ -18,6 +18,8 @@ sys.setdefaultencoding("utf-8")
 
 
 class CNIndex(object):
+    category = 'cnindex'
+
     headers = {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Accept-Encoding": "gzip, deflate, sdch",
@@ -65,7 +67,7 @@ class CNIndex(object):
                     "in_dt": in_dt,
                     "out_dt": None,
                     "sign": "0",
-                    "cat": "cnindex",
+                    "cat": self.category,
                     "ct": time.strftime('%Y%m%d%H%M%S')
                 })
         os.remove(path)

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import re
 import hashlib
-from datetime import datetime
-from operator import itemgetter
+from datetime import datetime, date, timedelta
 from collections import defaultdict
 
 from pymongo import MongoClient
@@ -24,17 +24,18 @@ def get_md5(value):
 class StorageMongo(object):
     default_indexes = ['ct', '_id']
 
-    def __init__(self):
+    def __init__(self, category):
         self.client = MongoClient(HOST, PORT)
         self.collection = self.client[DB][COLLECTION]
 
         self.created_index()
         self.need_index = set()
+        self.using_category = category
         self.cached = self.get_data_from_mongo()
 
     required_fields = ['s', 'p_code', 's_code', 'in_dt', 'out_dt', 'sign', 'cat', 'ct', 'stat']
 
-    def get_data_from_mongo(self, unset=True):
+    def get_data_from_mongo(self, unset=True, including_sign=True):
         cached = set()
         required_docs = self.get_ordered_items()
 
@@ -42,23 +43,31 @@ class StorageMongo(object):
             setattr(self, 'latest_indexes', required_docs)
 
         for _k, _v in required_docs.iteritems():
-            sign = _v[0][-1]
-            key = _k + sign if sign == '1' else _k
+            sign = _v[0]['sign']
+
+            if including_sign:
+                key = _k + sign if sign == '1' else _k
+            else:
+                key = _k
             cached.add(key)
         return cached
 
     def get_ordered_items(self):
+        """
+        Just obtain docs data from mongo, which crawled with web
+        :return: dict of list, like: [{...}, ...]
+        """
         required_docs = defaultdict(list)
-        required_fields = {'p_code': 1, 's_code': 1, 'ct': 1, 'sign': 1}
+        query = {'cat': re.compile(r'%s' % self.using_category)}
 
-        for r_docs in self.collection.find({}, required_fields).sort([('ct', -1)]):
+        for r_docs in self.collection.find(query):
             key = r_docs['p_code'] + r_docs['s_code']
 
             # 在未处理剔除之前的指数抓取都默认为是未剔除状态
-            required_docs[key].append((r_docs['ct'], r_docs['_id'], r_docs['sign']))
+            required_docs[key].append(r_docs)
 
         for ps_key, values in required_docs.iteritems():
-            values.sort(key=lambda item: itemgetter(item, 0))
+            values.sort(key=lambda item: item['in_dt'], reverse=True)
         return required_docs
 
     def list_indexes(self):
@@ -82,7 +91,7 @@ class StorageMongo(object):
         except:
             pass
 
-    def validation(self, data):
+    def validation(self, data, rewrite_in_dt=False):
         if not isinstance(data, dict):
             raise TypeError('Expected Dict object!')
 
@@ -94,6 +103,9 @@ class StorageMongo(object):
 
         if isinstance(data['sign'], basestring) and data['sign'] not in {'1', '0'}:
             raise ValueError('Key `sign` expected string and value is 0 or 1 !')
+
+        if rewrite_in_dt:
+            data['in_dt'] = date.today().strftime('%Y%m%d')
 
     def filter(self, p_code, s_code, **kwargs):
         ft = p_code + s_code
@@ -114,7 +126,7 @@ class StorageMongo(object):
         bulk = docs_or_list if isinstance(docs_or_list, (tuple, list)) else [docs_or_list]
 
         for each_docs in bulk:
-            self.validation(each_docs)
+            self.validation(each_docs, rewrite_in_dt=True)
             is_insert = self.filter(**each_docs)
             try:
                 if is_insert:
@@ -124,20 +136,30 @@ class StorageMongo(object):
 
     def eliminate(self):
         need_indexes = self.need_index
-        mongo_indexes = self.get_data_from_mongo(unset=True)
+        mongo_indexes = self.get_data_from_mongo(unset=True, including_sign=False)
 
         diff_set = mongo_indexes - need_indexes
+        latest_docs = getattr(self, 'latest_indexes')
 
-        try:
-            latest_docs = self.latest_indexes
+        for ps_key in diff_set:
+            if ps_key in latest_docs:
+                try:
+                    _id = latest_docs[ps_key][0]['_id']
+                    out_dt = latest_docs[ps_key][0]['out_dt']
 
-            for ps_key in diff_set:
-                _id = latest_docs[ps_key][0][1]
-                query = {'_id': _id}
-                setdata = {'$set': {'sign': '1', 'ct': datetime.now().strftime('%Y%m%d%H%M%S')}}
-                self.collection.update(query, setdata)
-        except (AttributeError, KeyError, IndexError) as e:
-            logger.info('`Eliminate` crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
+                    if not out_dt:
+                        query = {'_id': _id}
+                        setdata = {
+                            '$set':
+                                {
+                                    'sign': '1',
+                                    'ct': datetime.now().strftime('%Y%m%d%H%M%S'),
+                                    'out_dt': (date.today() - timedelta(days=1)).strftime("%Y%m%d"),
+                                }
+                               }
+                        self.collection.update(query, setdata)
+                except (AttributeError, IndexError, KeyError) as e:
+                    logger.info('`Eliminate` crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
     def close(self):
         self.client.close()

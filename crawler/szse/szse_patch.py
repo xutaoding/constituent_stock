@@ -10,6 +10,8 @@ from conf import logger
 
 
 class SZSEPatch(object):
+    category = 'szse'
+
     def __init__(self):
         self.index_url = r'http://www.szse.cn/main/marketdata/hqcx/zsybg/'
         self.ajax_url = r'http://www.szse.cn/szseWeb/FrontController.szse'
@@ -97,7 +99,7 @@ class SZSEPatch(object):
                             "in_dt": in_dt,
                             "out_dt": None,
                             "sign": "0",
-                            "cat": "szse",
+                            "cat": self.category,
                             "ct": time.strftime('%Y%m%d%H%M%S')
                         })
                     logger.info('pcode:%s,name:%s' % (p, name))

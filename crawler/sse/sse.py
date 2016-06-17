@@ -9,12 +9,14 @@ from conf import sse_config
 
 
 class SSEIndex(HtmlLoader):
+    category = 'sse'
+
     def __init__(self):
         self.headers = sse_config['headers']
         self.base_url = sse_config['base_url']
         self.url = sse_config['ind_url'].format(t=str(time.time()).replace('.', ''))
 
-        self.mongo = StorageMongo()
+        self.mongo = StorageMongo(self.category)
 
     @staticmethod
     def unpickle(data, key=None):
@@ -50,7 +52,7 @@ class SSEIndex(HtmlLoader):
 
                 data = {
                     's': name, 'p_code': code, 's_code': s_code, 'in_dt': repl_dt(dt), 'out_dt': None, 'sign': '0',
-                    'cat': 'sse', 'ct': re.compile(r'\s+|[-:\.]').sub('', str((datetime.now())))[:14]
+                    'cat': self.category, 'ct': re.compile(r'\s+|[-:\.]').sub('', str((datetime.now())))[:14]
                 }
                 self.mongo.insert2mongo(data)
             else:

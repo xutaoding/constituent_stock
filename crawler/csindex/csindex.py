@@ -32,7 +32,7 @@ class CsindexSpider(scrapy.Spider):
 
     def parse(self, response):
         comp = re.compile("ftp://(.+)/(.+[.].+)")
-        sm=StorageMongo()
+        sm=StorageMongo(self.name)
 
         for table in response.css("table"):
             for tr in table.css("tr")[1:]:
