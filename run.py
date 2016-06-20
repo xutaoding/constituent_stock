@@ -12,7 +12,6 @@ from apscheduler.executors.pool import ThreadPoolExecutor
 from crawler import *
 from conf import logger
 from conf import CAN_HOST, CAN_PORT, CAN_DB, CAN_COLLECTION
-from utils.util import StorageMongo
 
 
 def create_sqlite():
@@ -39,10 +38,10 @@ job_defaults = {
 }
 
 trigger_kwargs = {
-    'sse': {'hour': '9', 'second': '20'},
-    'szse': {'hour': '9', 'second': '22'},
-    'csindex': {'hour': '9', 'second': '26'},
-    'cnindex': {'hour': '9', 'second': '28'},
+    'sse': {'hour': '9', 'minute': '20'},
+    'szse': {'hour': '9', 'minute': '22'},
+    'csindex': {'hour': '9', 'minute': '26'},
+    'cnindex': {'hour': '9', 'minute': '28'},
 }
 
 app = BlockingScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults)
@@ -58,7 +57,6 @@ def is_workday():
     return calendars
 
 
-@app.scheduled_job(trigger='cron', **trigger_kwargs['sse'])
 def crawl_sse_index():
     today = datetime.now().strftime('%Y-%m-%d')
 
@@ -71,7 +69,6 @@ def crawl_sse_index():
         logger.info('SSE crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
 
-@app.scheduled_job(trigger='cron', **trigger_kwargs['szse'])
 def crawl_szse_index():
     today = datetime.now().strftime('%Y-%m-%d')
 
@@ -84,7 +81,6 @@ def crawl_szse_index():
         logger.info('SZSE crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
 
-@app.scheduled_job(trigger='cron', **trigger_kwargs['cnindex'])
 def crawl_cn_index():
     today = datetime.now().strftime('%Y-%m-%d')
 
@@ -97,7 +93,6 @@ def crawl_cn_index():
         logger.info('CNindex crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
 
-@app.scheduled_job(trigger='cron', **trigger_kwargs['csindex'])
 def crawl_cs_index():
     today = datetime.now().strftime('%Y-%m-%d')
 
@@ -111,6 +106,12 @@ def crawl_cs_index():
         cp.start()
     except Exception as e:
         logger.info('SSIndex crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
+
+
+app.add_job(crawl_sse_index, trigger='cron', **trigger_kwargs['sse'])
+app.add_job(crawl_szse_index, trigger='cron', **trigger_kwargs['szse'])
+app.add_job(crawl_cn_index, trigger='cron', **trigger_kwargs['cnindex'])
+app.add_job(crawl_cs_index, trigger='cron', **trigger_kwargs['csindex'])
 
 app.start()
 
