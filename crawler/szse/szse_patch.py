@@ -89,6 +89,7 @@ class SZSEPatch(object):
                 return
 
             html = self.get_html(p)
+            time.sleep(0.6)
             s_code = self.parse_html(html)
             if s_code:
                 for code in s_code:
@@ -102,7 +103,7 @@ class SZSEPatch(object):
                         "cat": self.category,
                         "ct": time.strftime('%Y%m%d%H%M%S')
                     })
-                logger.info('pcode:%s,name:%s' % (p, name))
+                # logger.info('pcode:%s,name:%s' % (p, name))
         except Exception as e:
             logger.info('SZSe crawl error: type <{}>, msg <{}>'.format(e.__class__, e))
 
@@ -117,6 +118,7 @@ class SZSEPatch(object):
             index_names = tree.xpath('//td[@class="cls-data-td"][@style="mso-number-format:\@"]/a/u/text()')
 
             pool.map(lambda _p: self.single_thread(_p), [p for p in index_names])
+            logger.info('SZSE Page <{}> crawl Done!'.format(page))
             wait_time = randint(3, 8)
             time.sleep(wait_time)
 

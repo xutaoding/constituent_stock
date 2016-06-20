@@ -70,8 +70,8 @@ class SSEIndex(HtmlLoader):
             except Exception as e:
                 self.logger.info('SSE code <{} {}> site crawl error: typ <>, msg <>'.format(
                     code, s_code, type.__class__, e))
-        self.logger.info('Index <{name}>, Code <{code}>, Count <{count}> crawl spider!'.format(
-                name=name, code=code, count=count))
+        # self.logger.info('Index <{name}>, Code <{code}>, Count <{count}> crawl spider!'.format(
+        #         name=name, code=code, count=count))
 
     def crawl(self):
         thread_num = 8
@@ -81,8 +81,9 @@ class SSEIndex(HtmlLoader):
         pool = ThreadPool(8)
         iterable_args = [name_codes[i * thread_num: (i + 1) * thread_num] for i in range(length)]
 
-        for arguments in iterable_args:
+        for i, arguments in enumerate(iterable_args, 1):
             pool.map(lambda args: self.signal_thread(*args), arguments)
+            self.logger.info('SSE crawl page <> Done!'.format(i))
             wait_time = randint(3, 6)
             time.sleep(wait_time)
 
