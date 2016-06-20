@@ -33,7 +33,7 @@ class CNIndex(object):
     }
 
     def __init__(self):
-        self.mongo = StorageMongo()
+        self.mongo = StorageMongo(self.category)
 
     def parse_xls(self, path):
         data = xlrd.open_workbook(path)
@@ -97,6 +97,8 @@ class CNIndex(object):
                 if tr.select("td")[0].get("bgcolor") == "#FFFFFF":
                     url = "http://www.cnindex.com.cn/zstx/szxl/" + tr.select_one("td a").get("href")
                     self.parse_detail(url)
+        self.mongo.eliminate()
+        self.mongo.close()
 
 
 if __name__ == '__main__':

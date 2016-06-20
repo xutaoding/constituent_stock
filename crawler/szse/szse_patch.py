@@ -26,7 +26,7 @@ class SZSEPatch(object):
                                  re.S)
         self._count = re.compile(r'\d+', re.S)
         self._date = re.compile(r'\d+-.*', re.S)
-        self.mongo = StorageMongo()
+        self.mongo = StorageMongo(self.category)
 
     def parse_html(self, html):
 
@@ -104,7 +104,8 @@ class SZSEPatch(object):
                         })
                     logger.info('pcode:%s,name:%s' % (p, name))
                 time.sleep(0.5)
-            self.mongo.close()
+        self.mongo.eliminate()
+        self.mongo.close()
 
 if __name__ == '__main__':
     SZSEPatch().upload()

@@ -37,6 +37,14 @@ job_defaults = {
     'coalesce': False,
     'max_instances': 1
 }
+
+trigger_kwargs = {
+    'sse': {'hour': '9', 'second': '20'},
+    'szse': {'hour': '9', 'second': '22'},
+    'csindex': {'hour': '9', 'second': '6'},
+    'cnindex': {'hour': '9', 'second': '8'},
+}
+
 app = BlockingScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults)
 
 
@@ -50,7 +58,7 @@ def is_workday():
     return calendars
 
 
-@app.scheduled_job(trigger='cron', hour='17')
+@app.scheduled_job(trigger='cron', **trigger_kwargs['sse'])
 def crawl_sse_index():
     today = datetime.now().strftime('%Y-%m-%d')
 
@@ -63,7 +71,7 @@ def crawl_sse_index():
         logger.info('SSE crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
 
-@app.scheduled_job(trigger='cron', hour='17')
+@app.scheduled_job(trigger='cron', **trigger_kwargs['szse'])
 def crawl_szse_index():
     today = datetime.now().strftime('%Y-%m-%d')
 
@@ -76,7 +84,7 @@ def crawl_szse_index():
         logger.info('SZSE crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
 
-@app.scheduled_job(trigger='cron', hour='17')
+@app.scheduled_job(trigger='cron', **trigger_kwargs['cnindex'])
 def crawl_cn_index():
     today = datetime.now().strftime('%Y-%m-%d')
 
@@ -89,7 +97,7 @@ def crawl_cn_index():
         logger.info('CNindex crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
 
-@app.scheduled_job(trigger='cron', hour='17')
+@app.scheduled_job(trigger='cron', **trigger_kwargs['csindex'])
 def crawl_cs_index():
     today = datetime.now().strftime('%Y-%m-%d')
 
@@ -103,14 +111,6 @@ def crawl_cs_index():
         cp.start()
     except Exception as e:
         logger.info('SSIndex crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
-
-
-@app.scheduled_job(trigger='corn', hour='23')
-def eliminate():
-    try:
-        StorageMongo().eliminate()
-    except Exception as e:
-        logger.info('Eliminate index error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
 app.start()
 

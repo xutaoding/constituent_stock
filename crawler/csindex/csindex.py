@@ -15,6 +15,7 @@ sys.setdefaultencoding("utf-8")
 
 class CsindexSpider(scrapy.Spider):
     name = "csindex"
+    download_delay = 0.4
     start_urls = (
         "http://www.csindex.com.cn/sseportal/csiportal/xzzx/queryindexdownloadlist.do?type=1",
         "http://www.csindex.com.cn/sseportal/csiportal/xzzx/queryindexdownloadlist.do?type=2"
@@ -46,7 +47,6 @@ class CsindexSpider(scrapy.Spider):
                 ftp = Ftp(host)
                 data = pandas.DataFrame()
 
-
                 sheet_name, downloaded = ftp.download(file, "datas")
                 if downloaded.empty or not downloaded.__contains__(u"成分券代码\nConstituent Code"):
                     continue
@@ -71,7 +71,7 @@ class CsindexSpider(scrapy.Spider):
                 data["ct"] = today.strftime("%Y%m%d%H%M%S")
 
                 sm.insert2mongo([row.to_dict() for ix, row in data.iterrows()])
-
+        sm.eliminate()
         sm.close()
 
 
