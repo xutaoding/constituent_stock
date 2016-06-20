@@ -108,10 +108,22 @@ def crawl_cs_index():
         logger.info('SSIndex crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
 
-app.add_job(crawl_sse_index, trigger='cron', **trigger_kwargs['sse'])
-app.add_job(crawl_szse_index, trigger='cron', **trigger_kwargs['szse'])
-app.add_job(crawl_cn_index, trigger='cron', **trigger_kwargs['cnindex'])
-app.add_job(crawl_cs_index, trigger='cron', **trigger_kwargs['csindex'])
+def spider_indexes():
+    today = datetime.now().strftime('%Y-%m-%d')
 
+    if today not in is_workday():
+        return
+
+    crawl_sse_index()
+    crawl_szse_index()
+    crawl_cn_index()
+    crawl_cs_index()
+
+# app.add_job(crawl_sse_index, trigger='cron', **trigger_kwargs['sse'])
+# app.add_job(crawl_szse_index, trigger='cron', **trigger_kwargs['szse'])
+# app.add_job(crawl_cn_index, trigger='cron', **trigger_kwargs['cnindex'])
+# app.add_job(crawl_cs_index, trigger='cron', **trigger_kwargs['csindex'])
+
+app.add_job(spider_indexes, trigger='cron', hour='11', minute='50')
 app.start()
 
