@@ -37,6 +37,7 @@ class CsindexSpider(scrapy.Spider):
     def parse(self, response):
         comp = re.compile("ftp://(.+)/(.+[.].+)")
         sm=StorageMongo(self.name)
+        setattr(self, 'mongo', sm)
 
         for table in response.css("table"):
             for tr in table.css("tr")[1:]:
@@ -74,8 +75,16 @@ class CsindexSpider(scrapy.Spider):
                 data["ct"] = today.strftime("%Y%m%d%H%M%S")
 
                 sm.insert2mongo([row.to_dict() for ix, row in data.iterrows()])
-        sm.eliminate()
-        sm.close()
+
+    @staticmethod
+    def close(spider, reason):
+        closed = getattr(spider, 'closed', None)
+        if callable(closed):
+            return closed(reason)
+
+        mongo = getattr(spider, 'mongo')
+        mongo.eliminate()
+        mongo.close()
 
 
 if __name__ == "__main__":

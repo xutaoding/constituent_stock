@@ -35,9 +35,9 @@ class StorageMongo(object):
 
     required_fields = ['s', 'p_code', 's_code', 'in_dt', 'out_dt', 'sign', 'cat', 'ct', 'stat']
 
-    def get_data_from_mongo(self, unset=True, including_sign=True):
+    def get_data_from_mongo(self, unset=True, including_sign=True, query=True):
         cached = set()
-        required_docs = self.get_ordered_items()
+        required_docs = self.get_ordered_items(query)
 
         if unset is False:
             setattr(self, 'latest_indexes', required_docs)
@@ -52,13 +52,19 @@ class StorageMongo(object):
             cached.add(key)
         return cached
 
-    def get_ordered_items(self):
+    def get_ordered_items(self, query=False):
         """
         Just obtain docs data from mongo, which crawled with web
+        :param query: query condition from mongo
         :return: dict of list, like: [{...}, ...]
         """
         required_docs = defaultdict(list)
-        query = {'cat': re.compile(r'%s' % self.using_category)}
+
+        if not query:
+            query = {'cat': re.compile(r'%s' % self.using_category)}
+        else:
+            using_category = 'sse|szse|cnindex|csindex'
+            query = {'cat': re.compile(r'%s' % using_category)}
 
         for r_docs in self.collection.find(query):
             key = r_docs['p_code'] + r_docs['s_code']
