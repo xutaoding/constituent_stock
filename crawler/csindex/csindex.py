@@ -59,7 +59,7 @@ class CsindexSpider(scrapy.Spider):
                     in_dt=today
 
                 def fmt_s_code(x):
-                    if isinstance(x,(float,int)):
+                    if isinstance(x,(float,int, long)):
                         return "%06d"%x
                     else:
                         return x
