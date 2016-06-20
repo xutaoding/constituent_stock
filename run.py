@@ -41,8 +41,8 @@ job_defaults = {
 trigger_kwargs = {
     'sse': {'hour': '9', 'second': '20'},
     'szse': {'hour': '9', 'second': '22'},
-    'csindex': {'hour': '9', 'second': '6'},
-    'cnindex': {'hour': '9', 'second': '8'},
+    'csindex': {'hour': '9', 'second': '26'},
+    'cnindex': {'hour': '9', 'second': '28'},
 }
 
 app = BlockingScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults)
