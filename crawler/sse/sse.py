@@ -40,9 +40,15 @@ class SSEIndex(HtmlLoader):
         data_key = 'result'
         name_key = 'name'
         code_key = 'indexCode'
+        all_name_code = []
         raw_html = self.get_html(self.url, headers=self.headers)
 
-        return [[item[name_key], item[code_key]] for item in self.unpickle(raw_html, data_key)]
+        for item in self.unpickle(raw_html, data_key):
+            name_code = item[name_key], item[code_key]
+
+            if name_code not in all_name_code:
+                all_name_code.append(name_code)
+        return all_name_code
 
     def signal_thread(self, name, code):
         count = 0

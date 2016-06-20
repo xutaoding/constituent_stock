@@ -6,6 +6,8 @@ import sys
 import time
 import requests
 import chardet
+from random import randint
+from multiprocessing.dummy import Pool as ThreadPool
 
 from os.path import abspath, dirname
 sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
@@ -80,8 +82,33 @@ class SZSEPatch(object):
             if counts:
                 return int(self._count.findall(''.join(counts))[1])
 
+    def single_thread(self, p):
+        try:
+            ajax_counts, in_dt, name = self.page_count({'ZSDM': p, 'TABKEY': 'tab1', 'ACTIONID': 7, 'CATALOGID': 1747})
+            if not ajax_counts:
+                return
+
+            html = self.get_html(p)
+            s_code = self.parse_html(html)
+            if s_code:
+                for code in s_code:
+                    self.mongo.insert2mongo({
+                        "s": name,
+                        "p_code": p,
+                        "s_code": code,
+                        "in_dt": in_dt,
+                        "out_dt": None,
+                        "sign": "0",
+                        "cat": self.category,
+                        "ct": time.strftime('%Y%m%d%H%M%S')
+                    })
+                logger.info('pcode:%s,name:%s' % (p, name))
+        except Exception as e:
+            logger.info('SZSe crawl error: type <{}>, msg <{}>'.format(e.__class__, e))
+
     def upload(self):
         counts = self.page_count()
+        pool = ThreadPool(12)
 
         for page in range(1, counts + 1):
             data = {'AJAX': 'AJAX-TRUE', 'TABKEY': 'tab1', 'ACTIONID': 7, 'tab1PAGENUM': page, 'CATALOGID': 1812}
@@ -89,26 +116,12 @@ class SZSEPatch(object):
             tree = lxml.html.fromstring(unicode(raw_html, 'utf-8'))
             index_names = tree.xpath('//td[@class="cls-data-td"][@style="mso-number-format:\@"]/a/u/text()')
 
-            for p in index_names:
-                ajax_counts, in_dt, name = self.page_count({'ZSDM': p, 'TABKEY': 'tab1', 'ACTIONID': 7, 'CATALOGID': 1747})
-                if not ajax_counts:
-                    continue
-                html = self.get_html(p)
-                s_code = self.parse_html(html)
-                if s_code:
-                    for code in s_code:
-                        self.mongo.insert2mongo({
-                            "s": name,
-                            "p_code": p,
-                            "s_code": code,
-                            "in_dt": in_dt,
-                            "out_dt": None,
-                            "sign": "0",
-                            "cat": self.category,
-                            "ct": time.strftime('%Y%m%d%H%M%S')
-                        })
-                    logger.info('pcode:%s,name:%s' % (p, name))
-                time.sleep(0.2)
+            pool.map(lambda _p: self.single_thread(_p), [p for p in index_names])
+            wait_time = randint(4, 8)
+            time.sleep(wait_time)
+
+        pool.close()
+        pool.join()
         self.mongo.eliminate()
         self.mongo.close()
 
