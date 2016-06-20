@@ -2,9 +2,12 @@
 import re
 import sys
 from datetime import datetime
+from os.path import dirname, abspath
 
 import pandas
 import scrapy
+
+sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
 
 from utils import StorageMongo
 from utils.ftp import Ftp

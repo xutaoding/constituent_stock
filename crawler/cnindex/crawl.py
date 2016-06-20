@@ -6,9 +6,12 @@ import time
 import datetime
 from multiprocessing.dummy import Pool as ThreadPool
 from urllib import urlretrieve
+from os.path import abspath, dirname
 
 import xlrd
 from bs4 import BeautifulSoup
+
+sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
 
 from utils import HtmlLoader, StorageMongo
 from utils.util import get_md5

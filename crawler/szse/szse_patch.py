@@ -2,9 +2,13 @@
 from __future__ import unicode_literals
 import lxml.html
 import re
+import sys
 import requests
 import chardet
-import time
+
+from os.path import abspath, dirname
+sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
+
 from utils import StorageMongo, HtmlLoader
 from conf import logger
 

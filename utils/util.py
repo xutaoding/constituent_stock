@@ -136,7 +136,7 @@ class StorageMongo(object):
 
     def eliminate(self):
         need_indexes = self.need_index
-        mongo_indexes = self.get_data_from_mongo(unset=True, including_sign=False)
+        mongo_indexes = self.get_data_from_mongo(unset=False, including_sign=False)
 
         diff_set = mongo_indexes - need_indexes
         latest_docs = getattr(self, 'latest_indexes')

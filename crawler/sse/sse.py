@@ -1,8 +1,14 @@
 from __future__ import unicode_literals
 import re
+import sys
 import time
 import json
+from random import randint
 from datetime import datetime
+from os.path import abspath, dirname
+from multiprocessing.dummy import Pool as ThreadPool
+
+sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
 
 from utils import HtmlLoader, StorageMongo
 from conf import sse_config
@@ -38,26 +44,44 @@ class SSEIndex(HtmlLoader):
 
         return [[item[name_key], item[code_key]] for item in self.unpickle(raw_html, data_key)]
 
-    def crawl(self):
+    def signal_thread(self, name, code):
+        count = 0
         data_key = 'result'
-        name_codes = self.get_name_code_by_index()
         repl_dt = (lambda _dt: dt.replace('-', ''))
+        url = self.base_url.format(c=code, t=str(time.time()).replace('.', ''))
+        html = self.get_raw_html(url, headers=self.headers)
 
-        for name, code in name_codes:
-            url = self.base_url.format(c=code, t=str(time.time()).replace('.', ''))
-            html = self.get_raw_html(url, headers=self.headers)
+        for _index, item in enumerate(self.unpickle(html, data_key), 1):
+            s_code, st, dt = item
 
-            for _index, item in enumerate(self.unpickle(html, data_key), 1):
-                s_code, st, dt = item
-
+            try:
                 data = {
                     's': name, 'p_code': code, 's_code': s_code, 'in_dt': repl_dt(dt), 'out_dt': None, 'sign': '0',
                     'cat': self.category, 'ct': re.compile(r'\s+|[-:\.]').sub('', str((datetime.now())))[:14]
                 }
                 self.mongo.insert2mongo(data)
-            else:
-                self.logger.info('Index <{name}>, Code <{code}>, Count <{count}> crawl spider!'.format(
-                    name=name, code=code, count=_index))
+                count += 1
+            except Exception as e:
+                self.logger.info('SSE code <{} {}> site crawl error: typ <>, msg <>'.format(
+                    code, s_code, type.__class__, e))
+        self.logger.info('Index <{name}>, Code <{code}>, Count <{count}> crawl spider!'.format(
+                name=name, code=code, count=count))
+
+    def crawl(self):
+        thread_num = 8
+        name_codes = self.get_name_code_by_index()
+        length = len(name_codes) / 8 + 1
+
+        pool = ThreadPool(8)
+        iterable_args = [name_codes[i * thread_num: (i + 1) * thread_num] for i in range(length)]
+
+        for arguments in iterable_args:
+            pool.map(lambda args: self.signal_thread(*args), arguments)
+            wait_time = randint(3, 6)
+            time.sleep(wait_time)
+
+        pool.close()
+        pool.join()
         self.mongo.eliminate()
         self.mongo.close()
 
