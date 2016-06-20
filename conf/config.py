@@ -1,17 +1,35 @@
-HOST = '192.168.100.20'
-PORT = 27017
-DB = 'ada'
-COLLECTION = 'index_members_a'
+import sys
 
-A_HOST = '192.168.100.20'
-A_PORT = 27017
-A_DB = 'py_crawl'
-A_COLLECTION = 'a_stock'
+if sys.platform.lower()[:3] == 'win':
+    HOST = '192.168.100.20'
+    PORT = 27017
+    DB = 'ada'
+    COLLECTION = 'index_members_a'
 
-CAN_HOST = '192.168.100.20'
-CAN_PORT = 27017
-CAN_DB = 'ada'
-CAN_COLLECTION = 'dict_calendar'
+    A_HOST = '192.168.100.20'
+    A_PORT = 27017
+    A_DB = 'ada'
+    A_COLLECTION = 'a_stock'
+
+    CAN_HOST = '192.168.100.20'
+    CAN_PORT = 27017
+    CAN_DB = 'ada'
+    CAN_COLLECTION = 'dict_calendar'
+else:
+    HOST = '122.144.134.95'
+    PORT = 27017
+    DB = 'ada'
+    COLLECTION = 'index_members_a'
+
+    A_HOST = '122.144.134.95'
+    A_PORT = 27017
+    A_DB = 'ada'
+    A_COLLECTION = 'a_stock'
+
+    CAN_HOST = '122.144.134.95'
+    CAN_PORT = 27017
+    CAN_DB = 'ada'
+    CAN_COLLECTION = 'dict_calendar'
 
 USER_AGENT = [
     'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36',
