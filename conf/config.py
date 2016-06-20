@@ -1,7 +1,7 @@
 HOST = '192.168.100.20'
 PORT = 27017
-DB = 'py_crawl'
-COLLECTION = 'constituent'
+DB = 'ada'
+COLLECTION = 'index_members_a'
 
 A_HOST = '192.168.100.20'
 A_PORT = 27017
