@@ -22,7 +22,7 @@ def get_md5(value):
 
 
 class StorageMongo(object):
-    default_indexes = ['ct', '_id']
+    default_indexes = ['cat']
 
     def __init__(self, category):
         self.client = MongoClient(HOST, PORT)
