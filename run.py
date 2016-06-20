@@ -58,48 +58,28 @@ def is_workday():
 
 
 def crawl_sse_index():
-    today = datetime.now().strftime('%Y-%m-%d')
-
     try:
-        if today not in is_workday():
-            return
-
         SSEIndex().crawl()  # 上海交易所指数
     except Exception as e:
         logger.info('SSE crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
 
 def crawl_szse_index():
-    today = datetime.now().strftime('%Y-%m-%d')
-
     try:
-        if today not in is_workday():
-            return
-
         SZSEIndex().upload()  # 深圳交易所指数
     except Exception as e:
         logger.info('SZSE crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
 
 def crawl_cn_index():
-    today = datetime.now().strftime('%Y-%m-%d')
-
     try:
-        if today not in is_workday():
-            return
-
         CNIndex().main()  # CNINDEX 网站指数
     except Exception as e:
         logger.info('CNindex crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
 
 def crawl_cs_index():
-    today = datetime.now().strftime('%Y-%m-%d')
-
     try:
-        if today not in is_workday():
-            return
-
         # 中证指数网站
         cp = CrawlerProcess()
         cp.crawl(CsindexSpider())
