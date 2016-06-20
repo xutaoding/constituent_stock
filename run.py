@@ -95,9 +95,16 @@ def spider_indexes():
         return
 
     crawl_sse_index()
+    logger.info('SSE site crawl Done!')
+
     crawl_szse_index()
+    logger.info('SZSE site crawl Done!')
+
     crawl_cn_index()
+    logger.info('CNINDES site crawl Done!')
+
     crawl_cs_index()
+    logger.info('CSINDEX site crawl Done!')
 
 # app.add_job(crawl_sse_index, trigger='cron', **trigger_kwargs['sse'])
 # app.add_job(crawl_szse_index, trigger='cron', **trigger_kwargs['szse'])
