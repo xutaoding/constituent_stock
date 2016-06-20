@@ -119,7 +119,7 @@ class SZSEPatch(object):
 
             pool.map(lambda _p: self.single_thread(_p), [p for p in index_names])
             logger.info('SZSE Page <{}> crawl Done!'.format(page))
-            wait_time = randint(3, 8)
+            wait_time = randint(2, 5)
             time.sleep(wait_time)
 
         pool.close()
