@@ -27,8 +27,9 @@ class HtmlLoader(object):
             req = urllib2.Request(url) if not data else urllib2.Request(url, urllib.urlencode(data))
             req.add_header('User-Agent', choice(USER_AGENT))
 
-            for head_key, head_value in kwargs.iteritems():
-                req.add_header(head_key, head_value)
+            for head_value in kwargs.itervalues():
+                for key, value in head_value.iteritems():
+                    req.add_header(key, value)
 
             try:
                 response = urllib2.urlopen(req, timeout=30)

@@ -103,7 +103,7 @@ class SZSEPatch(object):
                             "ct": time.strftime('%Y%m%d%H%M%S')
                         })
                     logger.info('pcode:%s,name:%s' % (p, name))
-                time.sleep(0.5)
+                time.sleep(0.2)
         self.mongo.eliminate()
         self.mongo.close()
 

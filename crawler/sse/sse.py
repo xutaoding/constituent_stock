@@ -45,7 +45,7 @@ class SSEIndex(HtmlLoader):
 
         for name, code in name_codes:
             url = self.base_url.format(c=code, t=str(time.time()).replace('.', ''))
-            html = self.get_html(url, headers=self.headers)
+            html = self.get_raw_html(url, headers=self.headers)
 
             for _index, item in enumerate(self.unpickle(html, data_key), 1):
                 s_code, st, dt = item
