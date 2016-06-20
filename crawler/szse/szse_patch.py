@@ -117,7 +117,7 @@ class SZSEPatch(object):
             index_names = tree.xpath('//td[@class="cls-data-td"][@style="mso-number-format:\@"]/a/u/text()')
 
             pool.map(lambda _p: self.single_thread(_p), [p for p in index_names])
-            wait_time = randint(4, 8)
+            wait_time = randint(3, 8)
             time.sleep(wait_time)
 
         pool.close()
