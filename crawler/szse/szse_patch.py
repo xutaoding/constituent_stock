@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import lxml.html
 import re
 import sys
+import time
 import requests
 import chardet
 
