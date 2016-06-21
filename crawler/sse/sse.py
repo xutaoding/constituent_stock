@@ -56,6 +56,7 @@ class SSEIndex(HtmlLoader):
         repl_dt = (lambda _dt: dt.replace('-', ''))
         url = self.base_url.format(c=code, t=str(time.time()).replace('.', ''))
         html = self.get_raw_html(url, headers=self.headers)
+        time.sleep(0.4)
 
         for _index, item in enumerate(self.unpickle(html, data_key), 1):
             s_code, st, dt = item
