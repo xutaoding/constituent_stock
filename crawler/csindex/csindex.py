@@ -11,9 +11,12 @@ sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
 
 from utils import StorageMongo
 from utils.ftp import Ftp
+from conf import logger
 reload(sys)
 
 sys.setdefaultencoding("utf-8")
+
+total_data = []
 
 
 class CsindexSpider(scrapy.Spider):
@@ -33,11 +36,9 @@ class CsindexSpider(scrapy.Spider):
     字段 cat: 从哪里抓取的数据分类 该字段值必须有
     字段ct: 该记录创建的时间 ‘20160602094201’
     """
-
     def parse(self, response):
+        global total_data
         comp = re.compile("ftp://(.+)/(.+[.].+)")
-        sm=StorageMongo(self.name)
-        setattr(self, 'mongo', sm)
 
         for table in response.css("table"):
             for tr in table.css("tr")[1:]:
@@ -74,7 +75,7 @@ class CsindexSpider(scrapy.Spider):
                 data["cat"] = self.name
                 data["ct"] = today.strftime("%Y%m%d%H%M%S")
 
-                sm.insert2mongo([row.to_dict() for ix, row in data.iterrows()])
+                total_data.extend([row.to_dict() for ix, row in data.iterrows()])
 
     @staticmethod
     def close(spider, reason):
@@ -82,9 +83,13 @@ class CsindexSpider(scrapy.Spider):
         if callable(closed):
             return closed(reason)
 
-        mongo = getattr(spider, 'mongo')
+        mongo = StorageMongo('csindex')
+        logger.info(' Total_data count: <{}>'.format(len(total_data)))
+
+        mongo.insert2mongo(total_data)
         mongo.eliminate()
         mongo.close()
+        del total_data[:]
 
 
 if __name__ == "__main__":

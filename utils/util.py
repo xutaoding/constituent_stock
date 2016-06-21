@@ -44,11 +44,11 @@ class StorageMongo(object):
 
         for _k, _v in required_docs.iteritems():
             key = _k
-            sign = _v[0]['sign']
+            out_dt = _v[0]['out_dt']
             cached.add(key)
 
-            if including_sign and sign == '1':
-                cached.add(key + sign)
+            if including_sign and out_dt:
+                cached.add(key + '1')
         return cached
 
     def get_ordered_items(self, query=False):
@@ -110,6 +110,10 @@ class StorageMongo(object):
 
         if rewrite_in_dt:
             data['in_dt'] = date.today().strftime('%Y%m%d')
+
+        s_code = data['s_code']
+        if len(s_code) != 6 and s_code.isdigit():
+            data['s_code'] = '0' * (6 - len(s_code)) + s_code
 
     def filter(self, p_code, s_code, **kwargs):
         ft = p_code + s_code

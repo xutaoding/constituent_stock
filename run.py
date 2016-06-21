@@ -4,7 +4,6 @@ from datetime import datetime
 from os.path import dirname, abspath
 
 from pymongo import MongoClient
-from scrapy.crawler import CrawlerProcess
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
@@ -79,13 +78,15 @@ def crawl_cn_index():
 
 
 def crawl_cs_index():
+    from scrapy.crawler import CrawlerProcess
+
     try:
         # 中证指数网站
         cp = CrawlerProcess()
         cp.crawl(CsindexSpider())
         cp.start()
     except Exception as e:
-        logger.info('SSIndex crawl error: type <{typ}>, msg <{msg}>\n'.format(typ=e.__class__, msg=e))
+        logger.info('CSIndex crawl error: type <{typ}>, msg <{msg}>\n'.format(typ=e.__class__, msg=e))
 
 
 def spider_indexes():
