@@ -96,16 +96,16 @@ def spider_indexes():
         return
 
     crawl_sse_index()
-    logger.info('SSE site crawl Done!')
+    logger.info('SSE site crawl Done!\n')
 
     crawl_szse_index()
-    logger.info('SZSE site crawl Done!')
+    logger.info('SZSE site crawl Done!\n')
 
     crawl_cn_index()
-    logger.info('CNINDES site crawl Done!')
+    logger.info('CNINDES site crawl Done!\n')
 
     crawl_cs_index()
-    logger.info('CSINDEX site crawl Done!')
+    logger.info('CSINDEX site crawl Done!\n')
 
 # app.add_job(crawl_sse_index, trigger='cron', **trigger_kwargs['sse'])
 # app.add_job(crawl_szse_index, trigger='cron', **trigger_kwargs['szse'])
