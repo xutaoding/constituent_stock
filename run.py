@@ -6,7 +6,7 @@ from os.path import dirname, abspath
 from pymongo import MongoClient
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.blocking import BlockingScheduler
-from apscheduler.executors.pool import ThreadPoolExecutor
+from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 
 from crawler import *
 from conf import logger
@@ -28,7 +28,8 @@ jobstores = {
 
 # using ThreadPoolExecutor as default other than ProcessPoolExecutor(not work) to executors
 executors = {
-    'default': ThreadPoolExecutor(4),
+    # 'default': ThreadPoolExecutor(4),
+    'default': ProcessPoolExecutor(4),
 }
 
 job_defaults = {

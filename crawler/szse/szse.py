@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 import sys
 import time
+from datetime import datetime
 from random import randint, random
 from multiprocessing.dummy import Pool as ThreadPool
 
@@ -49,14 +50,15 @@ class SzseIndex(HtmlLoader):
                 s_code = '0' * (6 - len(each_code)) + each_code
 
                 self.mongo.insert2mongo({
-                    "s": '',
+                    "p_abbr": '',
                     "p_code": p_code,
                     "s_code": s_code,
                     "in_dt": time.strftime('%Y%m%d'),
                     "out_dt": None,
                     "sign": "0",
                     "cat": self.category,
-                    "ct": time.strftime('%Y%m%d%H%M%S')
+                    "crt": datetime.now(),
+                    'upt': datetime.now(),
                 })
         except Exception as e:
             self.logger.info('SZSE crawl error: type <{}>, msg <{}>'.format(e.__class__, e))

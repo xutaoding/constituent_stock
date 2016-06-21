@@ -33,7 +33,7 @@ class StorageMongo(object):
         self.using_category = category
         self.cached = self.get_data_from_mongo()
 
-    required_fields = ['s', 'p_code', 's_code', 'in_dt', 'out_dt', 'sign', 'cat', 'ct', 'stat']
+    required_fields = ['p_abbr', 'p_code', 's_code', 'in_dt', 'out_dt', 'sign', 'cat', 'crt', 'upt',  'stat']
 
     def get_data_from_mongo(self, unset=True, including_sign=True, query=True):
         cached = set()
@@ -165,7 +165,7 @@ class StorageMongo(object):
                             '$set':
                                 {
                                     'sign': '1',
-                                    'ct': datetime.now().strftime('%Y%m%d%H%M%S'),
+                                    'upt': datetime.now(),
                                     'out_dt': (date.today() - timedelta(days=1)).strftime("%Y%m%d"),
                                 }
                                }

@@ -63,8 +63,8 @@ class SSEIndex(HtmlLoader):
 
             try:
                 data = {
-                    's': name, 'p_code': code, 's_code': s_code, 'in_dt': repl_dt(dt), 'out_dt': None, 'sign': '0',
-                    'cat': self.category, 'ct': re.compile(r'\s+|[-:\.]').sub('', str((datetime.now())))[:14]
+                    'p_abbr': name, 'p_code': code, 's_code': s_code, 'in_dt': repl_dt(dt), 'out_dt': None,
+                    'sign': '0', 'cat': self.category, 'crt': datetime.now(), 'upt': datetime.now()
                 }
                 self.mongo.insert2mongo(data)
                 count += 1

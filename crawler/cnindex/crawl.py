@@ -77,14 +77,15 @@ class CNIndex(object):
                     p_code = str(sh.row_values(i)[p_code_line])
                 s_code = str(int(sh.row_values(i)[s_code_line])).rjust(6, "0")
                 self.mongo.insert2mongo({
-                    "s": sh.row_values(i)[s_line],
+                    "p_abbr": sh.row_values(i)[s_line],
                     "p_code": p_code,
                     "s_code": s_code,
                     "in_dt": in_dt,
                     "out_dt": None,
                     "sign": "0",
                     "cat": self.category,
-                    "ct": time.strftime('%Y%m%d%H%M%S')
+                    "crt": datetime.datetime.now(),
+                    "upt": datetime.datetime.now(),
                 })
         os.remove(path)
 
