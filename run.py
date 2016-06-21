@@ -113,6 +113,7 @@ def spider_indexes():
 # app.add_job(crawl_cn_index, trigger='cron', **trigger_kwargs['cnindex'])
 # app.add_job(crawl_cs_index, trigger='cron', **trigger_kwargs['csindex'])
 
-app.add_job(spider_indexes, trigger='cron', hour='11', minute='50')
+app.add_job(spider_indexes, trigger='cron', hour='9', minute='20')
+app.add_job(spider_indexes, trigger='cron', hour='13', minute='0')
 app.start()
 
