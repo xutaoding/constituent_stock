@@ -8,6 +8,7 @@ from collections import defaultdict
 from pymongo import MongoClient
 from conf import logger
 from conf import HOST, PORT, DB, COLLECTION
+from conf.indexes import REQUIRED_INDEXES as _RINDEX
 
 
 def get_md5(value):
@@ -119,6 +120,9 @@ class StorageMongo(object):
         ft = p_code + s_code
         cache = self.cached
         self.need_index.add(ft)
+
+        if p_code not in _RINDEX:
+            return False
 
         if ft not in cache:
             cache.add(ft)
