@@ -74,16 +74,16 @@ class SSEIndex(HtmlLoader):
         #         name=name, code=code, count=count))
 
     def crawl(self):
-        thread_num = 8
+        thread_num = 10
         name_codes = self.get_name_code_by_index()
-        length = len(name_codes) / 8 + 1
+        length = len(name_codes) / thread_num + 1
 
-        pool = ThreadPool(8)
+        pool = ThreadPool(thread_num)
         iterable_args = [name_codes[i * thread_num: (i + 1) * thread_num] for i in range(length)]
 
         for i, arguments in enumerate(iterable_args, 1):
             pool.map(lambda args: self.signal_thread(*args), arguments)
-            self.logger.info('SSE crawl page <> Done!'.format(i))
+            self.logger.info('SSE crawl page <{}>, Total Pages <{}> Done!'.format(i, length))
             wait_time = randint(3, 6)
             time.sleep(wait_time)
 

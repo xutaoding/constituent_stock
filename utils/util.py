@@ -43,13 +43,12 @@ class StorageMongo(object):
             setattr(self, 'latest_indexes', required_docs)
 
         for _k, _v in required_docs.iteritems():
+            key = _k
             sign = _v[0]['sign']
-
-            if including_sign:
-                key = _k + sign if sign == '1' else _k
-            else:
-                key = _k
             cached.add(key)
+
+            if including_sign and sign == '1':
+                cached.add(key + sign)
         return cached
 
     def get_ordered_items(self, query=False):
@@ -61,12 +60,11 @@ class StorageMongo(object):
         required_docs = defaultdict(list)
 
         if not query:
-            query = {'cat': re.compile(r'%s' % self.using_category)}
+            query_cond = {'cat': re.compile(r'%s' % self.using_category)}
         else:
-            using_category = 'sse|szse|cnindex|csindex'
-            query = {'cat': re.compile(r'%s' % using_category)}
+            query_cond = {}
 
-        for r_docs in self.collection.find(query):
+        for r_docs in self.collection.find(query_cond):
             key = r_docs['p_code'] + r_docs['s_code']
 
             # 在未处理剔除之前的指数抓取都默认为是未剔除状态
@@ -142,7 +140,11 @@ class StorageMongo(object):
 
     def eliminate(self):
         need_indexes = self.need_index
-        mongo_indexes = self.get_data_from_mongo(unset=False, including_sign=False)
+        mongo_indexes = self.get_data_from_mongo(
+            unset=False,
+            including_sign=False,
+            query=False
+        )
 
         diff_set = mongo_indexes - need_indexes
         latest_docs = getattr(self, 'latest_indexes')

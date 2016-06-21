@@ -66,7 +66,7 @@ def crawl_sse_index():
 
 def crawl_szse_index():
     try:
-        SZSEIndex().upload()  # 深圳交易所指数
+        SzseIndex().crawl()  # 深圳交易所指数
     except Exception as e:
         logger.info('SZSE crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
 
