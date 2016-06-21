@@ -61,21 +61,21 @@ def crawl_sse_index():
     try:
         SSEIndex().crawl()  # 上海交易所指数
     except Exception as e:
-        logger.info('SSE crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
+        logger.info('SSE crawl error: type <{typ}>, msg <{msg}>\n'.format(typ=e.__class__, msg=e))
 
 
 def crawl_szse_index():
     try:
         SzseIndex().crawl()  # 深圳交易所指数
     except Exception as e:
-        logger.info('SZSE crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
+        logger.info('SZSE crawl error: type <{typ}>, msg <{msg}>\n'.format(typ=e.__class__, msg=e))
 
 
 def crawl_cn_index():
     try:
         CNIndex().main()  # CNINDEX 网站指数
     except Exception as e:
-        logger.info('CNindex crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
+        logger.info('CNindex crawl error: type <{typ}>, msg <{msg}>\n'.format(typ=e.__class__, msg=e))
 
 
 def crawl_cs_index():
@@ -85,7 +85,7 @@ def crawl_cs_index():
         cp.crawl(CsindexSpider())
         cp.start()
     except Exception as e:
-        logger.info('SSIndex crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
+        logger.info('SSIndex crawl error: type <{typ}>, msg <{msg}>\n'.format(typ=e.__class__, msg=e))
 
 
 def spider_indexes():
