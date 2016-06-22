@@ -96,10 +96,10 @@ class CsindexSpider(scrapy.Spider):
         mongo = StorageMongo('csindex')
         logger.info(' Total_data count: <{}>'.format(len(total_data)))
 
-        # mongo.insert2mongo(total_data)
-        # mongo.eliminate()
-        # mongo.close()
-        # del total_data[:]
+        mongo.insert2mongo(total_data)
+        mongo.eliminate()
+        mongo.close()
+        del total_data[:]
 
 
 if __name__ == "__main__":
