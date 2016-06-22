@@ -21,7 +21,7 @@ class Sender(object):
         self.host = host or HOST
         self.port = PORT
         self.timeout = timeout
-        self.receivers = ';'.join(receivers or [])
+        self.receivers = receivers or []
 
         self.msg = MIMEMultipart(subtype)
 
@@ -30,59 +30,28 @@ class Sender(object):
         self.smtp.connect(self.host, self.port)
         self.smtp.login(self.user, self.password)
 
-    def add_header(self, subject):
+    def add_header(self, subject, priority=1):
         self.msg['From'] = Header(self.user, 'utf-8')
-        self.msg['To'] = Header(self.receivers, 'utf-8')
+        self.msg['To'] = Header(';'.join(self.receivers), 'utf-8')
         self.msg["Date"] = email.utils.formatdate(localtime=True)
         self.msg['Subject'] = Header('Subject: ' + subject, 'utf-8')
+        self.msg['X-Priorit'] = Header(str(priority), 'utf-8')
 
-    def _add_attach(self, attach_content, filename):
-        # 构造附件
-        att = MIMEText(attach_content, 'base64', 'utf-8')
-        att["Content-Type"] = "application/octet-stream"
-        att["Content-Disposition"] = 'attachment; filename="%s"' % basename(filename)
-        self.msg.attach(att)
+    def send_email(self, subject, body, attaches=None):
+        self.add_header(subject)
+        smtp = smtplib.SMTP(timeout=self.timeout)
+        smtp.connect(self.host, self.port)
+        smtp.login(self.user, self.password)
 
-    def _attach_files(self, files=None):
-        files = files or []
-        file_names = files if isinstance(files, (list, tuple)) else [files]
+        for attach in attaches or []:
+            att = MIMEText(attach['attach_text'], 'base64', 'utf-8')
+            att["Content-Type"] = 'application/octet-stream'
+            att["Content-Disposition"] = 'attachment; filename="%s"' % attach['attach_name']
+            self.msg.attach(att)
 
-        for _filename in file_names:
-            with open(filename) as fp:
-                self._add_attach(fp.read(), _filename)
-
-    def _alone_attaches(self, alone_attaches=None):
-        alone_attaches = alone_attaches or []
-        attaches = alone_attaches if isinstance(alone_attaches, (list, tuple)) else [alone_attaches]
-
-        for attach in attaches:
-            attach_text = attach.get('attach_text', '')
-            attach_name = attach.get('attach_name', 'text.txt')
-            self._add_attach(attach_text, attach_name)
-
-    def add_attach(self, mail_body, files=None, alone_attaches=None):
-        self._attach_files(files)
-        self._alone_attaches(alone_attaches)
-
-        # Show mail body text
-        content = MIMEText(mail_body, 'plain', 'utf-8')
-        self.msg.attach(content)
-
-    def send_email(self, subject='Just test', mail_body='Test', files=None, alone_attaches=None,
-                   mail_options=None, rcpt_options=None):
-        # 发送邮件或发送文本
-        mail_options = mail_options or []
-        rcpt_options = rcpt_options or []
-
-        try:
-            self.connect()
-            self.add_header(subject)
-            self.add_attach(mail_body, files, alone_attaches)
-            self.smtp.sendmail(self.user, self.receivers, self.msg.as_string(), mail_options, rcpt_options)
-        except Exception:
-            pass
-        finally:
-            self.smtp.quit()
+        self.msg.attach(MIMEText(body, 'plain', 'utf-8'))
+        smtp.sendmail(self.user, self.receivers, self.msg.as_string())
+        smtp.quit()
 
 
 def send_email(sub, txt, receiver, copyto=None, priority="3"):
@@ -112,6 +81,6 @@ if __name__ == '__main__':
     filename = 'D:/temp/indexes.txt'
     sender = Sender(receivers=receiver)
     # sender.send_email(files=filename)
-    sender.send_email(
-        alone_attaches=[{'attach_name': 'gggg.txt', 'attach_text': '\n'.join([str(s) for s in range(10)])}]
+    Sender(receivers=receiver).send_email(
+        alone_attaches=[{'attach_name': u'gggg.txt', 'attach_text': u'\n'.join([str(s) for s in range(10)])}]
     )
