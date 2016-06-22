@@ -43,7 +43,7 @@ class SzseIndex(HtmlLoader):
 
         try:
             html = self.get_raw_html(base_url.format(code=p_code))
-            time.sleep(1.1)
+            time.sleep(1)
             code_list = index_code_rule.findall(html)
 
             for each_code in code_list:
