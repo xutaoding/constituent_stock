@@ -15,6 +15,7 @@ sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
 
 from utils import HtmlLoader, StorageMongo
 from utils.util import get_md5
+from conf import logger
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -39,17 +40,13 @@ class CNIndex(object):
         self.mongo = StorageMongo(self.category)
 
     @staticmethod
-    def yield_xls_file(url, filename):
-        loader = HtmlLoader()
-        response = loader.get_html(url)
-
-        fp = open(filename, 'wb')
-        try:
-            fp.write(response)
-        except Exception:
-            pass
-        finally:
-            fp.close()
+    def _urlretrieve(url, filename):
+        for _ in range(3):
+            try:
+                return urlretrieve(url, filename=filename)
+            except Exception as e:
+                logger.info('Download xls error: type <>, msg <>, url <>, filename <>'.format(
+                    e.__class__, e, url, filename))
 
     def parse_xls(self, path):
         data = xlrd.open_workbook(path)
@@ -99,8 +96,7 @@ class CNIndex(object):
                     file_url = "http://www.cnindex.com.cn/docs/" + info.get("href")[info.get("href").rfind("/") + 1:]
                     # print file_url
                     file_name = get_md5(file_url[0:file_url.rfind(".")]) + file_url[file_url.rfind("."):]
-                    # urlretrieve(file_url, filename=file_name)
-                    self.yield_xls_file(file_url, file_name)
+                    self._urlretrieve(file_url, filename=file_name)
                     self.parse_xls(file_name)
                 except Exception as e:
                     print e.message
