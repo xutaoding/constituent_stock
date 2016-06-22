@@ -6,6 +6,7 @@ from random import choice
 
 from conf import USER_AGENT
 from conf import logger as _logger
+from conf.indexes import REQUIRED_INDEXES as _RINDEX
 
 
 class HtmlLoader(object):
@@ -41,3 +42,8 @@ class HtmlLoader(object):
                 time.sleep(3)
         return '<html></html>'
 
+    @staticmethod
+    def validate_index(p_code):
+        if p_code not in _RINDEX:
+            return False
+        return True

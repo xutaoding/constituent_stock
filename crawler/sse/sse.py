@@ -46,6 +46,10 @@ class SSEIndex(HtmlLoader):
         for item in self.unpickle(raw_html, data_key):
             name_code = item[name_key], item[code_key]
 
+            # Remove JingDong don't include indexes
+            if not self.validate_index(name_code[1]):
+                continue
+
             if name_code not in all_name_code:
                 all_name_code.append(name_code)
         return all_name_code

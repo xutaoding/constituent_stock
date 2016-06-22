@@ -111,8 +111,15 @@ class CNIndex(object):
         html = hl.get_html(url="http://www.cnindex.com.cn/zstx/szxl/", headers=self.headers)
         soup = BeautifulSoup(html, "lxml")
         for tr in soup.select(".RightBox tr"):
-            if tr.select("td"):
-                if tr.select("td")[0].get("bgcolor") == "#FFFFFF":
+            if len(tr.select("td")) > 1:
+                node = tr.select("td")[1]
+
+                if node.get("bgcolor") == "#FFFFFF":
+                    code = node.text.strip()
+
+                    if not hl.validate_index(code):
+                        continue
+
                     url = "http://www.cnindex.com.cn/zstx/szxl/" + tr.select_one("td a").get("href")
                     self.parse_detail(url)
         self.mongo.eliminate()

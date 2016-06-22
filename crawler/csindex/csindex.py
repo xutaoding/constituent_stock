@@ -12,6 +12,7 @@ sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
 from utils import StorageMongo
 from utils.ftp import Ftp
 from conf import logger
+from utils import HtmlLoader
 reload(sys)
 
 sys.setdefaultencoding("utf-8")
@@ -39,11 +40,19 @@ class CsindexSpider(scrapy.Spider):
     def parse(self, response):
         global total_data
         comp = re.compile("ftp://(.+)/(.+[.].+)")
+        code_rule = re.compile(r'code=(.*?)&')
 
         for table in response.css("table"):
             for tr in table.css("tr")[1:]:
                 name = tr.css("td:nth-child(1) a::text").extract_first()
+                part_href = tr.css("td:nth-child(1) a::attr(href)").extract_first()
                 uri = tr.css("td:nth-child(7) a::attr(href)").extract_first()
+
+                # Remove JingDong don't include indexes
+                code_list = code_rule.findall(part_href)
+                if not code_list or not HtmlLoader.validate_index(code_list[0]):
+                    continue
+
                 if not uri or not comp.findall(uri):
                     continue
 
@@ -87,15 +96,18 @@ class CsindexSpider(scrapy.Spider):
         mongo = StorageMongo('csindex')
         logger.info(' Total_data count: <{}>'.format(len(total_data)))
 
-        mongo.insert2mongo(total_data)
-        mongo.eliminate()
-        mongo.close()
-        del total_data[:]
+        # mongo.insert2mongo(total_data)
+        # mongo.eliminate()
+        # mongo.close()
+        # del total_data[:]
 
 
 if __name__ == "__main__":
+    import time
     from scrapy.crawler import CrawlerProcess
 
+    start = time.time()
     cp = CrawlerProcess()
     cp.crawl(CsindexSpider())
     cp.start()
+    print time.time() - start

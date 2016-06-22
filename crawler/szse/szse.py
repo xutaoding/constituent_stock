@@ -73,7 +73,10 @@ class SzseIndex(HtmlLoader):
             html = self.get_raw_html(self.base_url.format(r=r, p=page))
             codes = self.code_rule.findall(html)
 
-            pool.map(lambda _code: self.signal_thread(_code), codes)
+            # Remove JingDong don't include indexes
+            required_codes = [__code for __code in codes if self.validate_index(__code)]
+
+            pool.map(lambda _code: self.signal_thread(_code), required_codes)
             self.logger.info('SZSE Page <{}> crawl, Total page <{}> Done!'.format(page, total_pages))
 
             wait_time = randint(4, 8)
