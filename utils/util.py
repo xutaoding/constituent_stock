@@ -157,9 +157,6 @@ class StorageMongo(object):
         )
 
         diff_set = mongo_indexes - need_indexes
-        print diff_set
-        print len(diff_set), len(mongo_indexes), len(need_indexes)
-        # return
 
         # If have `diff_set`, group by `p_code`, then send email
         normal_indexes, no_normal_indexes = self.think_indexes_issue(diff_set)
