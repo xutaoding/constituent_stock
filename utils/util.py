@@ -162,10 +162,10 @@ class StorageMongo(object):
         normal_indexes, no_normal_indexes = self.think_indexes_issue(diff_set)
 
         if no_normal_indexes:
-            subject = '可能有问题的成分股， 请检查'
+            subject = '%s 网站: 可能有问题的成分股， 请检查' % self.using_category.upper()
             self.send_email(subject, no_normal_indexes)
         elif normal_indexes:
-            subject = '没有问题的成分股已被剔除， 望检查'
+            subject = '%s 网站: 没有问题的成分股已被剔除， 望检查' % self.using_category.upper()
             self.send_email(subject, normal_indexes)
 
         latest_docs = getattr(self, 'latest_indexes')
