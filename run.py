@@ -13,7 +13,7 @@ from crawler import *
 from conf import logger
 from conf.receiver import receiver
 from conf import CAN_HOST, CAN_PORT, CAN_DB, CAN_COLLECTION
-from utils.mail import send_email
+from utils.mail import Sender
 
 
 def create_sqlite():
@@ -121,7 +121,7 @@ def spider_indexes():
            u'深交所网站抓取时间: %s\n' % (cn_start - szse_start) + \
            u'CNINDEX 网站抓取时间: %s\n' % (cs_start - cn_start) + \
            u'CSINDEX 网站抓取时间: %s\n' % (end - cs_start)
-    send_email(subject, txt=text, receiver=receiver)
+    Sender(receivers=receiver).send_email(subject, mail_body=text)
 
 # app.add_job(crawl_sse_index, trigger='cron', **trigger_kwargs['sse'])
 # app.add_job(crawl_szse_index, trigger='cron', **trigger_kwargs['szse'])

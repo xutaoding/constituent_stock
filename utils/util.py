@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from pymongo import MongoClient
 from conf import logger
-from mail import send_email
+from mail import Sender
 from conf import HOST, PORT, DB, COLLECTION
 from conf.receiver import receiver
 from conf.indexes import REQUIRED_INDEXES as _RINDEX
@@ -210,10 +210,15 @@ class StorageMongo(object):
 
     @staticmethod
     def send_email(subject, dataset):
-        column = 10
-        issue_indexes = [' '.join(dataset[i * column:(i + 1) * column]) + '\n' for i in range(len(dataset))]
-        text = ''.join(issue_indexes)
-        send_email(subject, text, receiver)
+        temp_dict = defaultdict(list)
+
+        for p_s_code in dataset:
+            key = p_s_code[:6]
+            temp_dict[key].append(p_s_code[6:])
+
+        alone_attaches = [{'attach_name': k + '.txt', 'attach_text': '\n'.join(v)}
+                          for k, v in temp_dict.iteritems()]
+        Sender(receivers=receiver).send_email(subject, mail_body=subject, alone_attaches=alone_attaches)
 
     def close(self):
         self.client.close()
