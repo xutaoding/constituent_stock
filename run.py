@@ -121,7 +121,7 @@ def spider_indexes():
            u'深交所网站抓取时间: %s\n' % (cn_start - szse_start) + \
            u'CNINDEX 网站抓取时间: %s\n' % (cs_start - cn_start) + \
            u'CSINDEX 网站抓取时间: %s\n' % (end - cs_start)
-    Sender(receivers=receiver).send_email(subject, mail_body=text)
+    Sender(receivers=receiver).send_email(subject, text)
 
 # app.add_job(crawl_sse_index, trigger='cron', **trigger_kwargs['sse'])
 # app.add_job(crawl_szse_index, trigger='cron', **trigger_kwargs['szse'])
