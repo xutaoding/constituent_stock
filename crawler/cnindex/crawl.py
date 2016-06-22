@@ -48,6 +48,9 @@ class CNIndex(object):
                 logger.info('Download xls error: type <>, msg <>, url <>, filename <>'.format(
                     e.__class__, e, url, filename))
 
+    def generate_xls(self):
+        pass
+
     def parse_xls(self, path):
         data = xlrd.open_workbook(path)
         sh = data.sheet_by_index(0)
