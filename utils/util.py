@@ -7,7 +7,9 @@ from collections import defaultdict
 
 from pymongo import MongoClient
 from conf import logger
+from mail import send_email
 from conf import HOST, PORT, DB, COLLECTION
+from conf.receiver import receiver
 from conf.indexes import REQUIRED_INDEXES as _RINDEX
 
 
@@ -155,9 +157,23 @@ class StorageMongo(object):
         )
 
         diff_set = mongo_indexes - need_indexes
+        print diff_set
+        print len(diff_set), len(mongo_indexes), len(need_indexes)
+        # return
+
+        # If have `diff_set`, group by `p_code`, then send email
+        normal_indexes, no_normal_indexes = self.think_indexes_issue(diff_set)
+
+        if no_normal_indexes:
+            subject = '可能有问题的成分股， 请检查'
+            self.send_email(subject, no_normal_indexes)
+        elif normal_indexes:
+            subject = '没有问题的成分股已被剔除， 望检查'
+            self.send_email(subject, normal_indexes)
+
         latest_docs = getattr(self, 'latest_indexes')
 
-        for ps_key in diff_set:
+        for ps_key in normal_indexes:
             if ps_key in latest_docs:
                 try:
                     _id = latest_docs[ps_key][0]['_id']
@@ -176,6 +192,31 @@ class StorageMongo(object):
                         self.collection.update(query, setdata)
                 except (AttributeError, IndexError, KeyError) as e:
                     logger.info('`Eliminate` crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
+
+    def think_indexes_issue(self, diff_indexes):
+        normal_indexes = []
+        no_normal_indexes = []
+        issue_indexes_dict = defaultdict(list)
+
+        for p_s_code in diff_indexes:
+            key = p_s_code[:6]
+            issue_indexes_dict[key].append(p_s_code)
+
+        for _key, _value in issue_indexes_dict.iteritems():
+            feimu_count = self.collection.find({'p_code': _key, 'cat': self.using_category}).count()
+
+            if feimu_count and (len(_value) * 1.0 / feimu_count) >= 0.5:
+                no_normal_indexes.extend(_value)
+            else:
+                normal_indexes.extend(_value)
+        return normal_indexes, no_normal_indexes
+
+    @staticmethod
+    def send_email(subject, dataset):
+        column = 10
+        issue_indexes = [' '.join(dataset[i * column:(i + 1) * column]) + '\n' for i in range(len(dataset))]
+        text = ''.join(issue_indexes)
+        send_email(subject, text, receiver)
 
     def close(self):
         self.client.close()
