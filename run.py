@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 import os
+import time
 from datetime import datetime
 from os.path import dirname, abspath
 
 from pymongo import MongoClient
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.blocking import BlockingScheduler
-from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
+from apscheduler.executors.pool import ProcessPoolExecutor
 
 from crawler import *
 from conf import logger
+from conf.receiver import receiver
 from conf import CAN_HOST, CAN_PORT, CAN_DB, CAN_COLLECTION
+from utils.mail import send_email
 
 
 def create_sqlite():
@@ -96,17 +99,29 @@ def spider_indexes():
     if today not in is_workday():
         return
 
+    sse_start = time.time()
     crawl_sse_index()
     logger.info('SSE site crawl Done!\n')
 
+    szse_start = time.time()
     crawl_szse_index()
     logger.info('SZSE site crawl Done!\n')
 
+    cn_start = time.time()
     crawl_cn_index()
     logger.info('CNINDES site crawl Done!\n')
 
+    cs_start = time.time()
     crawl_cs_index()
     logger.info('CSINDEX site crawl Done!\n')
+    end = time.time()
+
+    subject = u'指数成分股抓取完成'
+    text = u'上交所网站抓取时间: %s\n' % (szse_start - sse_start) + \
+           u'深交所网站抓取时间: %s\n' % (cn_start - szse_start) + \
+           u'CNINDEX 网站抓取时间: %s\n' % (cs_start - cn_start) + \
+           u'CSINDEX 网站抓取时间: %s\n' % (end - cs_start)
+    send_email(subject, txt=text, receiver=receiver)
 
 # app.add_job(crawl_sse_index, trigger='cron', **trigger_kwargs['sse'])
 # app.add_job(crawl_szse_index, trigger='cron', **trigger_kwargs['szse'])
