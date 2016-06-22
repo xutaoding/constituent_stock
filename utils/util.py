@@ -160,6 +160,8 @@ class StorageMongo(object):
 
         # If have `diff_set`, group by `p_code`, then send email
         normal_indexes, no_normal_indexes = self.think_indexes_issue(diff_set)
+        print len(normal_indexes), len(no_normal_indexes)
+        print len(diff_set)
 
         if no_normal_indexes:
             subject = '%s 网站: 可能有问题的成分股， 请检查' % self.using_category.upper()
@@ -218,7 +220,7 @@ class StorageMongo(object):
 
         alone_attaches = [{'attach_name': k + '.txt', 'attach_text': '\n'.join(v)}
                           for k, v in temp_dict.iteritems()]
-        Sender(receivers=receiver).send_email(subject, mail_body=subject, alone_attaches=alone_attaches)
+        Sender(receivers=receiver).send_email(subject, subject, attaches=alone_attaches)
 
     def close(self):
         self.client.close()
