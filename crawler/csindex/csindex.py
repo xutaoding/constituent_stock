@@ -3,16 +3,19 @@ import re
 import sys
 from datetime import datetime
 from os.path import dirname, abspath
+import traceback
 
 import pandas
 import scrapy
 
+pandas.set_option("expand_frame_repr", False)
 sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
 
 from utils import StorageMongo
 from utils.ftp import Ftp
 from conf import logger
 from utils import HtmlLoader
+
 reload(sys)
 
 sys.setdefaultencoding("utf-8")
@@ -37,6 +40,7 @@ class CsindexSpider(scrapy.Spider):
     字段 cat: 从哪里抓取的数据分类 该字段值必须有
     字段ct: 该记录创建的时间 ‘20160602094201’
     """
+
     def parse(self, response):
         global total_data
         comp = re.compile("ftp://(.+)/(.+[.].+)")
@@ -56,36 +60,38 @@ class CsindexSpider(scrapy.Spider):
                 if not uri or not comp.findall(uri):
                     continue
 
-                today=datetime.now()
+                today = datetime.now()
                 host, file = comp.findall(uri)[0]
                 ftp = Ftp(host)
-                data = pandas.DataFrame()
 
-                sheet_name, downloaded = ftp.download(file, "datas")
-                if downloaded.empty or not downloaded.__contains__(u"成分券代码\nConstituent Code"):
-                    continue
-                try:
-                    in_dt=datetime.strptime(sheet_name,"%Y%m%d")
-                except ValueError:
-                    in_dt=today
 
-                def fmt_s_code(x):
-                    if isinstance(x,(float,int, long)):
-                        return "%06d"%x
-                    else:
-                        return x
+                for fname, sheet_name, downloaded, in_zip in ftp.download_iter(file, "datas"):
+                    data = pandas.DataFrame()
 
-                data["s_code"] = downloaded[u"成分券代码\nConstituent Code"].apply(fmt_s_code)
-                data["p_abbr"] = name
-                data["p_code"] = str(file[:-8])
-                data["in_dt"] = in_dt.strftime("%Y%m%d")
-                data["out_dt"] = None
-                data["sign"] = '0'
-                data["cat"] = self.name
-                data["crt"] = today
-                data["upt"] = today
+                    if downloaded.empty or not downloaded.__contains__(u"成分券代码\nConstituent Code"):
+                        continue
+                    try:
+                        in_dt = datetime.strptime(sheet_name, "%Y%m%d")
+                    except ValueError:
+                        in_dt = today
 
-                total_data.extend([row.to_dict() for ix, row in data.iterrows()])
+                    def fmt_s_code(x):
+                        if isinstance(x, (float, int, long)):
+                            return "%06d" % x
+                        else:
+                            return x
+
+                    data["s_code"] = downloaded[u"成分券代码\nConstituent Code"].apply(fmt_s_code)
+                    data["p_abbr"] = name if not in_zip else ""
+                    data["p_code"] = str(fname[:-8])
+                    data["in_dt"] = in_dt.strftime("%Y%m%d")
+                    data["out_dt"] = None
+                    data["sign"] = '0'
+                    data["cat"] = self.name
+                    data["crt"] = today
+                    data["upt"] = today
+
+                    total_data.extend([row.to_dict() for ix, row in data.iterrows()])
 
     @staticmethod
     def close(spider, reason):

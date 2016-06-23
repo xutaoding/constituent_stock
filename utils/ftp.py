@@ -37,7 +37,7 @@ class Ftp(ftplib.FTP):
         reg = re.compile(reg)
         return [n for n in self.nlst() if reg.findall(n)]
 
-    def download(self, file, save_path="."):
+    def download_iter(self, file, save_path="."):
         file_path = os.sep.join([save_path, file])
 
         if not os.path.exists(save_path):
@@ -47,18 +47,22 @@ class Ftp(ftplib.FTP):
             try:
                 self.retrbinary("RETR %s" % file, cache.write)
             except:
-                return "",pandas.DataFrame()
+                yield "", "", pandas.DataFrame(),False
+                return
 
         if not zipfile.is_zipfile(file_path):
             ef = pandas.ExcelFile(file_path)
-            return ef.sheet_names[0], pandas.read_excel(ef)
+            yield file, ef.sheet_names[0], pandas.read_excel(ef),False
+            return
 
         with zipfile.ZipFile(file_path, "r") as zip:
             xlss = []
             sheet_name = ""
             for name in zip.namelist():
                 ef = pandas.ExcelFile(zip.open(name))
-                xlss.append(pandas.read_excel(ef))
                 sheet_name = ef.sheet_names[0]
+                xls = pandas.read_excel(ef)
+                yield name, sheet_name, xls,True
+                xlss.append(xls)
 
-            return sheet_name, pandas.concat(xlss).drop_duplicates()
+            yield file, sheet_name, pandas.concat(xlss).drop_duplicates(),False
