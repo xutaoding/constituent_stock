@@ -65,4 +65,4 @@ class Ftp(ftplib.FTP):
                 yield name, sheet_name, xls,True
                 xlss.append(xls)
 
-            yield file, sheet_name, pandas.concat(xlss).drop_duplicates(),False
+            # yield file, sheet_name, pandas.concat(xlss).drop_duplicates(),False
