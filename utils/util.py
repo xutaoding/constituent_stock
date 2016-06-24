@@ -34,6 +34,7 @@ class StorageMongo(object):
         self.created_index()
         self.need_index = set()
         self.using_category = category
+        self.insert_mongo_data = []
         self.cached = self.get_data_from_mongo()
 
     required_fields = ['p_abbr', 'p_code', 's_code', 'in_dt', 'out_dt', 'sign', 'cat', 'crt', 'upt',  'stat']
@@ -144,7 +145,9 @@ class StorageMongo(object):
             is_insert = self.filter(**each_docs)
             try:
                 if is_insert:
+                    p_s_code = each_docs['p_code'] + each_docs['s_code']
                     self.collection.insert(each_docs)
+                    self.insert_mongo_data.append(p_s_code)
             except Exception:
                 pass
 
@@ -160,8 +163,12 @@ class StorageMongo(object):
 
         # If have `diff_set`, group by `p_code`, then send email
         normal_indexes, no_normal_indexes = self.think_indexes_issue(diff_set)
-        print len(normal_indexes), len(no_normal_indexes)
-        print len(diff_set)
+        print 'set(mong0) - set(web)=', len(diff_set)
+        print 'Normal:', len(normal_indexes), 'No Normal:', len(no_normal_indexes)
+
+        if self.insert_mongo_data:
+            subject = '%s 网站: 网页新增， 插入数据库的记录(新增)，望检查' % self.using_category.upper()
+            self.send_email(subject, self.insert_mongo_data, prefix='web')
 
         if no_normal_indexes:
             subject = '%s 网站: 可能有问题的指数成分股(未剔除)， 请检查' % self.using_category.upper()
@@ -184,8 +191,9 @@ class StorageMongo(object):
                             '$set':
                                 {
                                     'sign': '1',
+                                    'stat': 2,
                                     'upt': datetime.now(),
-                                    'out_dt': (date.today() - timedelta(days=1)).strftime("%Y%m%d"),
+                                    'out_dt': date.today().strftime("%Y%m%d"),
                                 }
                                }
                         self.collection.update(query, setdata)
@@ -211,15 +219,20 @@ class StorageMongo(object):
         return normal_indexes, no_normal_indexes
 
     @staticmethod
-    def send_email(subject, dataset):
+    def send_email(subject, dataset, prefix='mongo'):
         temp_dict = defaultdict(list)
 
         for p_s_code in dataset:
             key = p_s_code[:6]
             temp_dict[key].append(p_s_code[6:])
 
-        alone_attaches = [{'attach_name': k + '.txt', 'attach_text': '\n'.join(v)}
-                          for k, v in temp_dict.iteritems()]
+        alone_attaches = [
+            {
+                'attach_name': prefix + '_' + k + '.txt',
+                'attach_text': '\n'.join(v)
+             }
+            for k, v in temp_dict.iteritems()
+            ]
         Sender(receivers=receiver).send_email(subject, subject, attaches=alone_attaches)
 
     def close(self):
