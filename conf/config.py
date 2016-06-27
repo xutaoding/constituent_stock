@@ -19,7 +19,7 @@ def make_dev_ip():
     except socket.error:
         return '127.0.0.1'
 
-_DEV_ENV = ['192.168.1.22', '192.168.250.207']
+_DEV_ENV = ['192.168.1.22',]
 
 if make_dev_ip() in _DEV_ENV:
     HOST = '192.168.100.20'
