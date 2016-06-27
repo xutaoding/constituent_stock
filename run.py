@@ -54,8 +54,9 @@ def is_workday():
     today = datetime.now().strftime('%Y')
     client = MongoClient(CAN_HOST, CAN_PORT)
     collection = client[CAN_DB][CAN_COLLECTION]
+    query = {'trad': 1}
 
-    calendars = {docs['dt'] for docs in collection.find({}, {'dt': 1}) if docs['dt'].startswith(today)}
+    calendars = {docs['dt'] for docs in collection.find(query, {'dt': 1}) if docs['dt'].startswith(today)}
     client.close()
     return calendars
 
