@@ -24,12 +24,17 @@ def get_md5(value):
     return m.hexdigest()
 
 
+class BaseMongo(object):
+    def __init__(self):
+        self.client = MongoClient(HOST, PORT)
+        self.collection = self.client[DB][COLLECTION]
+
+
 class StorageMongo(object):
     default_indexes = ['cat']
 
     def __init__(self, category):
-        self.client = MongoClient(HOST, PORT)
-        self.collection = self.client[DB][COLLECTION]
+        super(StorageMongo, self).__init__()
 
         self.created_index()
         self.need_index = set()
@@ -239,3 +244,24 @@ class StorageMongo(object):
         self.client.close()
 
 
+class IndexFiltering(BaseMongo):
+    def __init__(self):
+        super(IndexFiltering, self).__init__()
+
+        self.web_indexes = self._web_indexes()
+
+    def _web_indexes(self):
+        web_indexes = defaultdict(set)
+        query = {'cat': re.compile(r'sse|szse|cnindex|csindex')}
+
+        for docs in self.collection.find(query):
+            web_indexes[docs['cat']].add(docs['p_code'])
+        self.client.close()
+        return web_indexes
+
+    def exclude_index(self, p_code, default_cat=None):
+        need_cat = default_cat or ['sse', 'szse']
+        for cat in need_cat:
+            if p_code in self.web_indexes[cat]:
+                return False
+        return True
