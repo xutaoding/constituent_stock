@@ -15,6 +15,7 @@ from utils import StorageMongo
 from utils.ftp import Ftp
 from conf import logger
 from utils import HtmlLoader
+from utils.util import IndexFiltering
 
 reload(sys)
 
@@ -100,9 +101,12 @@ class CsindexSpider(scrapy.Spider):
             return closed(reason)
 
         mongo = StorageMongo('csindex')
+        filter_obj = IndexFiltering()
         logger.info(' Total_data count: <{}>'.format(len(total_data)))
 
-        mongo.insert2mongo(total_data)
+        for docs in total_data:
+            if filter_obj.exclude_index(docs['p_code']):
+                mongo.insert2mongo(docs)
         mongo.eliminate()
         mongo.close()
         del total_data[:]
