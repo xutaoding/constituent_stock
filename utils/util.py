@@ -30,7 +30,7 @@ class BaseMongo(object):
         self.collection = self.client[DB][COLLECTION]
 
 
-class StorageMongo(object):
+class StorageMongo(BaseMongo):
     default_indexes = ['cat']
 
     def __init__(self, category):
