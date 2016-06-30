@@ -17,8 +17,8 @@ class HtmlLoader(object):
         required_headers = headers or {'User-Agent': choice(USER_AGENT)}
         for _ in range(3):
             try:
-                response = requests.get(url, headers=required_headers, cookies=required_cookie, **kwargs).content
-                return response
+                response = requests.get(url, headers=required_headers, cookies=required_cookie, timeout=40, **kwargs)
+                return response.content
             except Exception as e:
                 self.logger.info("Get html error: type <{}>, msg <{}>".format(e.__class__, e))
         return ''
