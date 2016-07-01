@@ -101,12 +101,9 @@ class CsindexSpider(scrapy.Spider):
             return closed(reason)
 
         mongo = StorageMongo('csindex')
-        filter_obj = IndexFiltering()
         logger.info(' Total_data count: <{}>'.format(len(total_data)))
 
-        for docs in total_data:
-            if filter_obj.exclude_index(docs['p_code']):
-                mongo.insert2mongo(docs)
+        mongo.insert2mongo(total_data)
         mongo.eliminate()
         mongo.close()
         del total_data[:]

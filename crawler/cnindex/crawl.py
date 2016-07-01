@@ -38,7 +38,6 @@ class CNIndex(object):
 
     def __init__(self):
         self.mongo = StorageMongo(self.category)
-        self.filter_obj = IndexFiltering()
 
     @staticmethod
     def _urlretrieve(url, filename):
@@ -78,18 +77,17 @@ class CNIndex(object):
                     p_code = str(sh.row_values(i)[p_code_line])
                 s_code = str(int(sh.row_values(i)[s_code_line])).rjust(6, "0")
 
-                if self.filter_obj.exclude_index(p_code):
-                    self.mongo.insert2mongo({
-                        "p_abbr": sh.row_values(i)[s_line],
-                        "p_code": p_code,
-                        "s_code": s_code,
-                        "in_dt": in_dt,
-                        "out_dt": None,
-                        "sign": "0",
-                        "cat": self.category,
-                        "crt": datetime.datetime.now(),
-                        "upt": datetime.datetime.now(),
-                    })
+                self.mongo.insert2mongo({
+                    "p_abbr": sh.row_values(i)[s_line],
+                    "p_code": p_code,
+                    "s_code": s_code,
+                    "in_dt": in_dt,
+                    "out_dt": None,
+                    "sign": "0",
+                    "cat": self.category,
+                    "crt": datetime.datetime.now(),
+                    "upt": datetime.datetime.now(),
+                })
         os.remove(path)
 
     def parse_detail(self, url):

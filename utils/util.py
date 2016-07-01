@@ -158,11 +158,7 @@ class StorageMongo(BaseMongo):
 
     def eliminate(self):
         need_indexes = self.need_index
-        mongo_indexes = self.get_data_from_mongo(
-            unset=False,
-            including_sign=False,
-            query=False
-        )
+        mongo_indexes = self.get_data_from_mongo(unset=False, including_sign=False, query=False)
 
         diff_set = mongo_indexes - need_indexes
 
