@@ -157,8 +157,10 @@ class StorageMongo(BaseMongo):
                 pass
 
     def eliminate(self):
+        must_remove_indexes = []
         need_indexes = self.need_index
         mongo_indexes = self.get_data_from_mongo(unset=False, including_sign=False, query=False)
+        latest_docs = getattr(self, 'latest_indexes')
 
         diff_set = mongo_indexes - need_indexes
 
@@ -166,19 +168,6 @@ class StorageMongo(BaseMongo):
         normal_indexes, no_normal_indexes = self.think_indexes_issue(diff_set)
         print 'set(mong0) - set(web)=', len(diff_set)
         print 'Normal:', len(normal_indexes), 'No Normal:', len(no_normal_indexes)
-
-        if self.insert_mongo_data:
-            subject = '%s 网站: 网页新增， 插入数据库的记录(新增)，望检查' % self.using_category.upper()
-            self.send_email(subject, self.insert_mongo_data, prefix='web')
-
-        if no_normal_indexes:
-            subject = '%s 网站: 可能有问题的指数成分股(未剔除)， 请检查' % self.using_category.upper()
-            self.send_email(subject, no_normal_indexes)
-        elif normal_indexes:
-            subject = '%s 网站: 没有问题的指数成分股(已剔除)， 望检查' % self.using_category.upper()
-            self.send_email(subject, normal_indexes)
-
-        latest_docs = getattr(self, 'latest_indexes')
 
         for ps_key in normal_indexes:
             if ps_key in latest_docs:
@@ -189,17 +178,25 @@ class StorageMongo(BaseMongo):
                     if not out_dt:
                         query = {'_id': _id}
                         setdata = {
-                            '$set':
-                                {
-                                    'sign': '1',
-                                    'stat': 2,
-                                    'upt': datetime.now(),
-                                    'out_dt': date.today().strftime("%Y%m%d"),
-                                }
-                               }
+                            '$set': {'sign': '1', 'stat': 2, 'upt': datetime.now(),
+                                     'out_dt': date.today().strftime("%Y%m%d")}
+                        }
                         self.collection.update(query, setdata)
+                        must_remove_indexes.append(ps_key)
                 except (AttributeError, IndexError, KeyError) as e:
                     logger.info('`Eliminate` crawl error: type <{typ}>, msg <{msg}>'.format(typ=e.__class__, msg=e))
+
+        if self.insert_mongo_data:
+            subject = '%s 网站: 网页新增， 插入数据库的记录(新增)，望检查' % self.using_category.upper()
+            self.send_email(subject, self.insert_mongo_data, prefix='web')
+
+        if no_normal_indexes:
+            subject = '%s 网站: 可能有问题的指数成分股(未剔除)， 请检查' % self.using_category.upper()
+            self.send_email(subject, no_normal_indexes)
+
+        if must_remove_indexes:
+            subject = '%s 网站: 没有问题的指数成分股(已剔除)， 望检查' % self.using_category.upper()
+            self.send_email(subject, must_remove_indexes)
 
     def think_indexes_issue(self, diff_indexes):
         normal_indexes = []
