@@ -255,13 +255,14 @@ class IndexFiltering(BaseMongo):
         query = {'cat': re.compile(r'sse|szse|cnindex|csindex')}
 
         for docs in self.collection.find(query):
-            web_indexes[docs['cat']].add(docs['p_code'])
+            web_indexes[docs['cat']].add(docs['p_code'] + docs['s_code'])
         self.client.close()
         return web_indexes
 
-    def exclude_index(self, p_code, default_cat=None):
+    def exclude_index(self, p_code, s_code, default_cat=None):
         need_cat = default_cat or ['sse', 'szse']
         for cat in need_cat:
-            if p_code in self.web_indexes[cat]:
+            required_key = p_code + s_code
+            if required_key in self.web_indexes[cat]:
                 return False
         return True
