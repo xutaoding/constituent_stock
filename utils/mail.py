@@ -31,7 +31,7 @@ class Sender(object):
         self.smtp.login(self.user, self.password)
 
     def add_header(self, subject, priority=1):
-        self.msg['From'] = Header(self.user, 'utf-8')
+        self.msg['From'] = Header(self.user)
         self.msg['To'] = Header(';'.join(self.receivers), 'utf-8')
         self.msg["Date"] = email.utils.formatdate(localtime=True)
         self.msg['Subject'] = Header('Subject: ' + subject, 'utf-8')
@@ -77,10 +77,7 @@ if __name__ == '__main__':
     # txt = [str(s) + '\n' for s in range(10)]
     # send_email('kakaka', ''.join(txt), ['xutao.ding@chinascopefinancial.com'])
 
-    receiver = ['xutao.ding@chinascopefinancial.com']
+    receiver = ['xutao.ding@chinascopefinancial.com', 'wenping.chen@chinascopefinancial.com']
     filename = 'D:/temp/indexes.txt'
     sender = Sender(receivers=receiver)
-    # sender.send_email(files=filename)
-    Sender(receivers=receiver).send_email(
-        alone_attaches=[{'attach_name': u'gggg.txt', 'attach_text': u'\n'.join([str(s) for s in range(10)])}]
-    )
+    sender.send_email(subject='TEST', body='akka test')
