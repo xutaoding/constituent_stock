@@ -10,6 +10,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.executors.pool import ProcessPoolExecutor
 
 from crawler import *
+from crawler.csindex.csindex import run_path
 from conf import logger
 from conf.receiver import receiver
 from conf import CAN_HOST, CAN_PORT, CAN_DB, CAN_COLLECTION
@@ -87,9 +88,13 @@ def crawl_cs_index():
 
     try:
         # 中证指数网站
-        cp = CrawlerProcess()
-        cp.crawl(CsindexSpider())
-        cp.start()
+        # cp = CrawlerProcess()
+        # cp.crawl(CsindexSpider())
+        # cp.start()
+        if run_path.endswith('.py'):
+            os.system('python %s' % run_path)
+        elif run_path.endswith('.pyc'):
+            os.system('python %s' % run_path[:-1])
     except Exception as e:
         logger.info('CSIndex crawl error: type <{typ}>, msg <{msg}>\n'.format(typ=e.__class__, msg=e))
 

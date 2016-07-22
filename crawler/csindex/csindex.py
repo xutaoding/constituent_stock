@@ -22,6 +22,7 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 total_data = []
+run_path = abspath(__file__)
 
 
 class CsindexSpider(scrapy.Spider):
