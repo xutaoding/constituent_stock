@@ -54,5 +54,7 @@ http://www.cnindex.com.cn/zstx/szxl/
 运行环境：
 ---------
 1：在122.144.134.3运行， 可备用到192.168.250.207运行
-2： screen -ls (jd_index即是)
+2：位置：目前在122.144.134.3:/opt/scrapyer目录下
+3： screen -ls (jd_index即是)
+4：运行脚本：constituent_stock/run.py
 
